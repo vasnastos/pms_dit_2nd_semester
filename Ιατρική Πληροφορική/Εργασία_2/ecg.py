@@ -1,5 +1,8 @@
 import numpy as np,os
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
+
+
 
 class ECG:
     def __init__(self) -> None:
@@ -7,10 +10,16 @@ class ECG:
         self.sliced_signal=self.signal[100:1000]
         self.frequency=1000
         self.cutoff_freq=None
-        self.fig=plt.figure(figsize=(10,6))
-        self.rows=4
-        self.cols=2
-        self.index=1
+        self.fig=plt.figure(figsize=(13,10))
+        self.gs=GridSpec(4,2,figure=self.fig)
+        self.rowc=0
+        self.colc=0
+
+    def update_column_counter(self):
+        self.colc+=1
+        if self.colc!=0 and self.colc%2==0:
+            self.rowc+=1
+            self.colc=0
 
     def plot_signal(self,in_axis=False):
         if not in_axis:
@@ -28,7 +37,7 @@ class ECG:
             plt.show()
         
         else:
-            ax=self.fig.add_subplot(self.rows,self.cols,self.index,colspan=2)
+            ax=self.fig.add_subplot(self.gs[self.rowc,:2])
             ax.plot(np.arange(self.signal.shape[0]),self.signal)
             ax.set_ylim(self.signal.min(),self.signal.max())
             ax.set_xticks(np.arange(0,self.signal.shape[0],5000))
@@ -37,7 +46,8 @@ class ECG:
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
             ax.set_title('Full signal plot')
-            self.index+=2
+            self.rowc+=1
+            self.colc=0
     
     def plot_sliced_signal(self,in_axis=False):
         if not in_axis:
@@ -54,7 +64,7 @@ class ECG:
             plt.savefig(os.path.join('','figures','ecg_sliced_signal_100_1000.png'),dpi=300)
             plt.show()
         else:
-            ax=self.fig.add_subplot(self.rows,self.cols,self.index)
+            ax=self.fig.add_subplot(self.gs[self.rowc,self.colc])
             ax.plot(np.arange(self.sliced_signal.shape[0]),self.sliced_signal)
             ax.set_ylim(self.sliced_signal.min()-0.5,self.sliced_signal.max()+0.5)
             ax.set_xticks(np.arange(0,self.sliced_signal.shape[0],100))
@@ -63,8 +73,8 @@ class ECG:
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
             ax.set_title('Sliced signal(100:1000) plot')
-            self.index+=1
-        
+            self.update_column_counter()
+            
 
     def amplitude_range(self,in_axis=False):
         # Fasma megethous
@@ -87,7 +97,7 @@ class ECG:
             plt.savefig(os.path.join('','figures','magnitude_spectrum_fft_signal.png'),dpi=300)
             plt.show()
         else:
-            ax=self.fig.add_subplot(self.rows,self.cols,self.index)
+            ax=self.fig.add_subplot(self.gs[self.rowc,self.colc])
             ax.plot(self.frequency_axis,self.magnitude_spectrum)
             ax.set_xlabel('Frequency (Hz)')
             ax.set_ylabel('Ampitude')
@@ -95,7 +105,7 @@ class ECG:
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
             ax.set_title('Magnitude spectrum signal plot')
-            self.index+=1
+            self.update_column_counter()
 
 
     def calculate_snr(self,signal,noise,cutoff_freq):
@@ -134,17 +144,19 @@ class ECG:
             plt.savefig(os.path.join('','figures','cutoff_frequency(frequency_spectrum)_signal.png'),dpi=300)
             plt.show()
         else:
-            ax=self.fig.add_subplot(self.rows,self.cols,self.index)
+            ax=self.fig.add_subplot(self.gs[self.rowc,self.colc])
             ax.plot(self.frequency_axis,self.magnitude_spectrum)  
             ax.axvline(x=cutoff_freqs[max_indeces[0]], color='red', linestyle='--', label=f'Cutoff Frequency = {cutoff_freqs[max_indeces[0]]:.2f} Hz')
             ax.set_ylim(self.magnitude_spectrum.min(),self.magnitude_spectrum.max()+0.5)
             ax.set_xlim(0,self.frequency_axis.max()+2)
+            ax.set_xlabel('Frequency (Hz)')
+            ax.set_ylabel('Amplitude')
             ax.set_xticks(np.arange(0,self.frequency_axis.max(),100))
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
             ax.legend()
             ax.set_title('Cutoff frequency plot')
-            self.index+=1
+            self.update_column_counter()
     
     def zero_high_freq_components(self,in_axis=False):
         fft_signal=np.fft.fft(self.sliced_signal)
@@ -167,13 +179,15 @@ class ECG:
             plt.savefig(os.path.join('','figures','zero_high_freq_components.png'),dpi=300)
             plt.show()
         else:
-            ax=self.fig.add_subplot(self.rows,self.cols,self.index)
+            ax=self.fig.add_subplot(self.gs[self.rowc,self.colc])
             ax.plot(2.0/len(filtered_signal)*np.abs(np.fft.fft(filtered_signal)),color='r')
             ax.set_xlabel('Frequency (Hz)')
             ax.set_ylabel('Amplitude')
             ax.set_title('Filtered Spectrum')
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
+            self.update_column_counter()
+            
 
     def signal_reconstruction(self,in_axis=False):
         ecg_fft=np.fft.fft(self.sliced_signal)
@@ -183,30 +197,38 @@ class ECG:
         ecg_fft[-indeces]=0
         filtered_signal=np.fft.ifft(ecg_fft).real
 
-        plt.figure(figsize=(10,5))
-        plt.plot(np.linspace(0,1,len(self.sliced_signal)),filtered_signal)
-        plt.xlabel('Time (s)')
-        plt.ylabel('Amplitude')
-        ax=plt.gca()
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        plt.title('Reconstructed Signal')
-        plt.savefig(os.path.join('','figures','signal_reconstruction.png'),dpi=300)
-        plt.show()
+        if not in_axis:
+            plt.figure(figsize=(10,5))
+            plt.plot(np.linspace(0,1,len(self.sliced_signal)),filtered_signal)
+            plt.xlabel('Time (s)')
+            plt.ylabel('Amplitude')
+            ax=plt.gca()
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            plt.title('Reconstructed Signal')
+            plt.savefig(os.path.join('','figures','signal_reconstruction.png'),dpi=300)
+            plt.show()
+        else:
+            ax=self.fig.add_subplot(self.gs[self.rowc,:2])
+            ax.plot(np.linspace(0,1,len(self.sliced_signal)),filtered_signal)
+            ax.set_xlabel('Time (s)')
+            ax.set_ylabel('Amplitude')
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.set_title('Reconstructed Signal')
+            self.rowc+=1
 
     def show(self):
+        self.fig.subplots_adjust(bottom=0.05,hspace=0.7)
         self.plot_signal(in_axis=True)
         self.plot_sliced_signal(in_axis=True)
         self.amplitude_range(in_axis=True)
         self.cutoff_frequency(in_axis=True)
         self.zero_high_freq_components(in_axis=True)
         self.signal_reconstruction(in_axis=True)
+        self.fig.savefig(os.path.join('','figures','Ecg_full_analysis.png'))
+        plt.show()
 
 if __name__=='__main__':
     ecg=ECG()
-    ecg.plot_signal()
-    ecg.plot_sliced_signal()
-    ecg.amplitude_range()
-    ecg.cutoff_frequency()
-    ecg.zero_high_freq_components()
-    ecg.signal_reconstruction()
+    ecg.show()
