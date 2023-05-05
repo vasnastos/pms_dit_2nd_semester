@@ -218,7 +218,7 @@ class ECG:
             ax.set_title('Reconstructed Signal')
             self.rowc+=1
 
-    def show(self):
+    def plot(self):
         self.fig.subplots_adjust(bottom=0.05,hspace=0.7)
         self.plot_signal(in_axis=True)
         self.plot_sliced_signal(in_axis=True)
@@ -228,7 +228,26 @@ class ECG:
         self.signal_reconstruction(in_axis=True)
         self.fig.savefig(os.path.join('','figures','Ecg_full_analysis.png'))
         plt.show()
+    
+    def distinct_plots(self):
+        self.plot_signal(in_axis=False)
+        self.plot_sliced_signal(in_axis=False)
+        self.amplitude_range(in_axis=False)
+        self.cutoff_frequency(in_axis=False)
+        self.zero_high_freq_components(in_axis=False)
+        self.signal_reconstruction(in_axis=False)
 
+import argparse
 if __name__=='__main__':
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--s1',action='store_true',help='Select scenario 1 for execution')
+    parser.add_argument('--s2',action='store_true',help='Select scenario 2 for execution(Each plot will created distinctively)')
+    args=parser.parse_args()
+    
     ecg=ECG()
-    ecg.show()
+    if args.s1:
+        ecg.plot()
+    elif args.s2:
+        ecg.distinct_plots()
+    else:
+        raise ValueError("Scenario does not been implemented yet select s1 or s2") 
