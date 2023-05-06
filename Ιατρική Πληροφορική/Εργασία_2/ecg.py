@@ -1,7 +1,9 @@
 import numpy as np,os
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-
+import statistics
+from scipy.stats import skew,kurtosis
+from tabulate import tabulate
 
 
 class ECG:
@@ -14,12 +16,31 @@ class ECG:
         self.gs=GridSpec(4,2,figure=self.fig)
         self.rowc=0
         self.colc=0
+        self.filename=None
+    
+    def set_filepath(self,fn):
+        self.filename=fn
 
     def update_column_counter(self):
         self.colc+=1
         if self.colc!=0 and self.colc%2==0:
             self.rowc+=1
             self.colc=0
+
+    def statistics(self):
+        q1,q3,_=statistics.quantiles(data=self.sliced_signal,n=4)
+        rows=[
+            ['Samples',self.sliced_signal.shape[0]],
+            ['Mean',statistics.mean(self.sliced_signal)],
+            ['Median',statistics.median(self.sliced_signal)],
+            ['Std',statistics.stdev(self.sliced_signal)],
+            ['Iqr',q3-q1],
+            ['Skewness',skew(self.sliced_signal)],
+            ['Kurtosis',kurtosis(self.sliced_signal)]
+        ]
+        print(tabulate(tabular_data=rows,headers=['Statistic Meter','Value'],tablefmt='fancy_grid',floatfmt='.3f'))
+        with open(os.path.join('stats.tex'),'w') as writer:
+            writer.write(tabulate(tabular_data=rows,headers=['Statistic Meter','Value'],tablefmt='latex',floatfmt='.3f'))
 
     def plot_signal(self,in_axis=False):
         if not in_axis:
@@ -33,7 +54,7 @@ class ECG:
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
             plt.title('Full signal plot')
-            plt.savefig(os.path.join('','figures','ecg_signal_full.png'),dpi=300)
+            plt.savefig(os.path.join('','figures','sliced_signal_full.png'),dpi=300)
             plt.show()
         
         else:
@@ -78,8 +99,8 @@ class ECG:
 
     def amplitude_range(self,in_axis=False):
         # Fasma megethous
-        windowed_ecg_signal=np.hanning(len(self.sliced_signal))*self.sliced_signal
-        fft_signal=np.fft.fft(windowed_ecg_signal)
+        windowed_sliced_signal=np.hanning(len(self.sliced_signal))*self.sliced_signal
+        fft_signal=np.fft.fft(windowed_sliced_signal)
         self.magnitude_spectrum=2.0/len(self.sliced_signal)*np.abs(fft_signal)
 
         sampling_rate=1000 #Hz
@@ -119,20 +140,25 @@ class ECG:
 
         return signal_power/noise_power
 
-    def cutoff_frequency(self,in_axis=False):
+    def cutoff_frequency(self,in_axis=False,fixed_frequency=None):
         noise=np.random.normal(0,0.5,self.sliced_signal.shape[0])
 
-        cutoff_freqs=np.linspace(0,self.frequency,num=100)
-        snrs=[self.calculate_snr(signal=self.sliced_signal,noise=noise,cutoff_freq=cutoff_freq) for cutoff_freq in cutoff_freqs]
+        if fixed_frequency:
+            self.cutoff_freq=fixed_frequency
+        else:
+            cutoff_freqs=np.linspace(0,self.frequency,num=100)
+            snrs=[self.calculate_snr(signal=self.sliced_signal,noise=noise,cutoff_freq=cutoff_freq) for cutoff_freq in cutoff_freqs]
 
-        best_cutoff_idx=np.argmax(snrs)
-        self.cutoff_freq=cutoff_freqs[best_cutoff_idx]
+            best_cutoff_idx=np.argmax(snrs)
+            self.cutoff_freq=cutoff_freqs[best_cutoff_idx]
 
-        max_indeces=np.array(snrs).argsort()[-2:]
+            max_indeces=np.array(snrs).argsort()[-2:]
+
+
         if not in_axis:
             plt.figure(figsize=(10,5))
             plt.plot(self.frequency_axis,self.magnitude_spectrum)  
-            plt.axvline(x=cutoff_freqs[max_indeces[0]], color='red', linestyle='--', label=f'Cutoff Frequency = {cutoff_freqs[max_indeces[0]]:.2f} Hz')
+            plt.axvline(x=self.cutoff_freq, color='red', linestyle='--', label=f'Cutoff Frequency = {self.cutoff_freq:.2f} Hz')
             plt.ylim(self.magnitude_spectrum.min(),self.magnitude_spectrum.max()+0.5)
             plt.xlim(0,self.frequency_axis.max()+2)
             plt.xticks(np.arange(0,self.frequency_axis.max(),100))
@@ -146,7 +172,7 @@ class ECG:
         else:
             ax=self.fig.add_subplot(self.gs[self.rowc,self.colc])
             ax.plot(self.frequency_axis,self.magnitude_spectrum)  
-            ax.axvline(x=cutoff_freqs[max_indeces[0]], color='red', linestyle='--', label=f'Cutoff Frequency = {cutoff_freqs[max_indeces[0]]:.2f} Hz')
+            ax.axvline(x=self.cutoff_freq, color='red', linestyle='--', label=f'Cutoff Frequency = {self.cutoff_freq:.2f} Hz')
             ax.set_ylim(self.magnitude_spectrum.min(),self.magnitude_spectrum.max()+0.5)
             ax.set_xlim(0,self.frequency_axis.max()+2)
             ax.set_xlabel('Frequency (Hz)')
@@ -219,6 +245,7 @@ class ECG:
             self.rowc+=1
 
     def plot(self):
+        self.set_filepath(os.path.join('','figures','Ecg_full_analysis.png'))
         self.fig.subplots_adjust(bottom=0.05,hspace=0.7)
         self.plot_signal(in_axis=True)
         self.plot_sliced_signal(in_axis=True)
@@ -226,7 +253,7 @@ class ECG:
         self.cutoff_frequency(in_axis=True)
         self.zero_high_freq_components(in_axis=True)
         self.signal_reconstruction(in_axis=True)
-        self.fig.savefig(os.path.join('','figures','Ecg_full_analysis.png'))
+        self.fig.savefig(self.filename)
         plt.show()
     
     def distinct_plots(self):
@@ -236,18 +263,40 @@ class ECG:
         self.cutoff_frequency(in_axis=False)
         self.zero_high_freq_components(in_axis=False)
         self.signal_reconstruction(in_axis=False)
+    
+    def fixed_cutoff_frequencies(self,freq=None):
+        self.set_filepath(os.path.join('','figures',f'Ecg_full_analysis_with_fix_freq_{freq}.png'))
+        self.fig.subplots_adjust(bottom=0.05,hspace=0.7)
+        self.plot_signal(in_axis=True)
+        self.plot_sliced_signal(in_axis=True)
+        self.amplitude_range(in_axis=True)
+        self.cutoff_frequency(in_axis=True,fixed_frequency=freq)
+        self.zero_high_freq_components(in_axis=True)
+        self.signal_reconstruction(in_axis=True)
+        self.fig.savefig(self.filename)
+        plt.show()
 
 import argparse
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('--s1',action='store_true',help='Select scenario 1 for execution')
     parser.add_argument('--s2',action='store_true',help='Select scenario 2 for execution(Each plot will created distinctively)')
+    parser.add_argument('--s3',action='store_true',help='Select scenario 3 for using fixed frequency execution(Each plot will created distinctively)')
+    parser.add_argument('--s',action='store_true',help='Print dataset statistics')
+    parser.add_argument('--f',help='Fixed cutoff frequency')
     args=parser.parse_args()
     
     ecg=ECG()
+    if args.s:
+        ecg.statistics()
+
+
     if args.s1:
         ecg.plot()
     elif args.s2:
         ecg.distinct_plots()
+    elif args.s3:
+        if args.f:
+            ecg.fixed_cutoff_frequencies(int(args.f))
     else:
         raise ValueError("Scenario does not been implemented yet select s1 or s2") 
