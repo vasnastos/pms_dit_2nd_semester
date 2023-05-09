@@ -1,13 +1,30 @@
 #include "problem.h"
+#include <cassert>
 
-class CsvLoader:public Problem
+
+class ApProblem:public Problem
 {
-    private:
-        vector <Data> xpoint;
-        Data ypoint;
     public:
-        CsvLoader(string filepath);
-        ~CsvLoader();
+        ApProblem();
+        double minimize_function(Data &x);
+        Data gradient(Data &x);
+        string description();
+};
 
+class Bf1Problem:public Problem
+{
+    public:
+        Bf1Problem();
+        double minimize_function(Data &x);
+        Data gradient(Data &x);
+        string description();
+};
 
+class BraninProblem:public Problem
+{
+    public:
+        BraninProblem();
+        double minimize_function(Data &x);
+        Data gradient(Data &x);
+        string description();
 };

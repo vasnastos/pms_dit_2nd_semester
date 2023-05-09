@@ -6,15 +6,6 @@ Problem::Problem(int d):dimension(d) {
     this->right_margin.resize(d);
 }
 
-void Problem::set_weight_init_method(string winit)
-{
-    this->weight_initialization=winit;
-}
-
-string Problem::get_weight_init_method()const
-{
-    return this->weight_initialization;
-}
 
 void Problem::set_left_margin(Data &x)
 {
@@ -43,27 +34,15 @@ Data Problem::get_right_margin()const
 
 Data Problem::get_sample()
 {
-    uniform_real_distribution <double> rand_real;
-    if(this->weight_initialization=="Random")
-    {
-        rand_real.param(uniform_real_distribution<double>::param_type(-0.01,0.01));
-    }
-    else if(this->weight_initialization=="Xavier")
-    {
-        rand_real.param(uniform_real_distribution<double>::param_type(-(1/this->dimension),1/this->dimension));
-    }
-    else if(this->weight_initialization=="UXavier")
-    {
-        rand_real.param(uniform_real_distribution<double>::param_type(-(6/this->dimension),(6/this->dimension)));
-    }
+    uniform_real_distribution <double> rand_real(0,1);
 
-    Data weight_set;
-    weight_set.resize(this->dimension);
+    Data coefficients;
+    coefficients.resize(this->dimension);
     for(int i=0;i<this->dimension;i++)
     {
-        weight_set[i]=rand_real(mt);
+        coefficients[i]=this->left_margin[i]+(this->right_margin[i]-this->left_margin[i])*rand_real(this->mt);
     }
-    return weight_set;
+    return coefficients;
 }
 
 bool Problem::is_point_in(Data &x)
@@ -79,3 +58,14 @@ bool Problem::is_point_in(Data &x)
 }
 
 Problem::~Problem() {}
+
+double Problem::grms(Data &x)
+{
+    Data gradients=this->gradient(x);
+    double s=0.0;
+    for(int i=0,t=x.size();i<t;i++)
+    {
+        s+=pow(gradients[i],2);
+    }
+    return sqrt(s/x.size());
+}

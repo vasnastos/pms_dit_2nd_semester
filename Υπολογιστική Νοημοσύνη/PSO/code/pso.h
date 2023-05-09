@@ -18,7 +18,7 @@ class PSO
         Data best_x;
         double best_y;
 
-        int c1,c2;
+        int c1,c2,c3;
         mt19937 eng;
 
     public:
@@ -33,7 +33,7 @@ class PSO
 
         Data get_best_x();
         double get_best_y();
-        double geometric_center();
+        Data geometric_center();
         
 
         bool terminated();
