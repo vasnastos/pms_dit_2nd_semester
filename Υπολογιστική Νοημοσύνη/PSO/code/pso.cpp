@@ -82,7 +82,8 @@ void PSO::step()
             r2=rand_real_eng(eng);
             r3=rand_real_eng(eng);
 
-            velocity_x[j]=this->inertia*velocity_x[j]+this->c1*r1*(x[j]-bx[j])+this->c2*r2*(x[j]-bx[j])+r3*c3*geometric_center_points[j];
+            velocity_x[j]=this->inertia*velocity_x[j]+this->c1*r1*(x[j]-bx[j])+this->c2*r2*(x[j]-bx[j]);
+            // velocity_x[j]=this->inertia*velocity_x[j]+this->c1*r1*(x[j]-bx[j])+this->c2*r2*(x[j]-bx[j])+r3*c3*geometric_center_points[j];
         }
         this->velocity.replace_point(i,velocity_x,velocity_y);
 
@@ -147,6 +148,7 @@ void PSO::solve()
     {
         this->step();
     } while (!this->terminated());
+    cout<<endl<<endl;
 }
 
 Data PSO::geometric_center()
