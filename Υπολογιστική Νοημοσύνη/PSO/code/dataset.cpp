@@ -184,3 +184,23 @@ void Dataset::normalization(string ntype)
         }
     }
 }
+
+Data Dataset::get_xpointi(int pos)
+{
+    if(pos<0 || pos>=this->count() || this->xpoint.empty())
+    { 
+        cerr<<"Position error:"<<pos<<endl;
+        return Data();
+    }
+    return this->xpoint.at(pos);
+}
+
+double Dataset::get_ypointi(int pos)
+{
+    if(this->ypoint.empty() || pos<0 || pos>=this->count())
+    {
+        cerr<<"Position error:"<<pos<<endl;
+        return -1.0;
+    }
+    return this->ypoint.at(pos);
+}

@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <numeric>
+#include <algorithm>
 
 
 using namespace std;
@@ -23,6 +24,9 @@ class Dataset
         void read(string filename,string separator);
         int dimension()const;
         int count()const;
+
+        Data get_xpointi(int pos);
+        double get_ypointi(int pos);
 
         double xmean(int pos);
         double ymean();
