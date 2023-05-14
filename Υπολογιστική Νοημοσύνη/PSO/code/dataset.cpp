@@ -204,3 +204,65 @@ double Dataset::get_ypointi(int pos)
     }
     return this->ypoint.at(pos);
 }
+
+void Dataset::make_patterns()
+{
+    this->patterns.clear();
+
+    for(auto &pattern:this->ypoint)
+    {
+        if(find_if(this->patterns.begin(),this->patterns.end(),[&](const double &c) {return fabs(pattern-c)<1e-5;})==this->patterns.end())
+        {
+            this->patterns.emplace_back(pattern);
+        }
+    } 
+}
+
+void Dataset::set_category(Category &cat)
+{
+    this->category=cat;
+}
+
+Category Dataset::get_category()const {return this->category;}
+
+string Dataset::get_named_category()const
+{
+    switch (this->category)
+    {
+        case Category::CLF:
+            return "Classification";
+            break;
+        case Category::REG:
+            return "Regressinon";
+            break;
+        default:
+            return "No-Category";
+            break;
+    }
+}
+
+
+double Dataset::get_class(double &value)
+{
+    if(this->category==Category::CLF)
+    {
+        for(auto &pattern:this->patterns)
+        {
+            if(fabs(value-pattern)<=1e-4)
+            {
+                return pattern;
+            }
+        }
+    }
+    return -1.0;
+}
+
+double Dataset::get_class(int &pos)
+{
+    if(this->xpoint.empty() || pos<0 || pos>=this->count())
+    {
+        cerr<<"Position error:"<<pos<<endl;
+    }
+    double y_value=this->get_ypointi(pos);
+    return this->get_class(y_value);
+}
