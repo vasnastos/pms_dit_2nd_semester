@@ -28,5 +28,4 @@ int main(int argc,char **argv)
     solver.solve();
 
     delete problem;
-
 }

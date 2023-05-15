@@ -62,7 +62,16 @@ Data MlpProblem::get_sample()
 
 double MlpProblem::minimize_function(map <int,Data> &w)
 {
+    this->set_weights(w);
+    if(this->data->get_category()==Category::CLF)
+    {
 
+        return this->sparse_categorical_crossentropy();
+    }
+    else if(this->data->get_category()==Category::REG)
+    {
+
+    }
 }
 
 Data MlpProblem::gradient(map <int,Data> &x)
