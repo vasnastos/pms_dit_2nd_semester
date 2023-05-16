@@ -1,5 +1,7 @@
-#include "loader.h"
+#include "loader.hpp"
 #define P 3.1415
+
+// Function learning problems
 
 ApProblem::ApProblem():Problem(2) {
     Data left_margin={-100,-100};

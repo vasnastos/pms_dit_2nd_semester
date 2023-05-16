@@ -1,5 +1,5 @@
-#include "loader.h"
-#include "pso.h"
+#include "loader.hpp"
+#include "pso.hpp"
 
 int main(int argc,char **argv)
 {

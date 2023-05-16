@@ -1,8 +1,10 @@
-#include "problem.h"
+#pragma once
+#include "problem.hpp"
 #include <fstream>
 #include <sstream>
 #include <numeric>
 #include <algorithm>
+#include <set>
 using namespace std;
 
 enum class Category
@@ -30,7 +32,7 @@ class Dataset
         Category get_category()const;
         string get_named_category()const;
 
-        void read(string filename,string separator);
+        void read(string filename,string separator,bool has_categorical=false);
 
         Data get_xpointi(int pos);
         double get_ypointi(int pos);
@@ -52,4 +54,5 @@ class Dataset
 
         double get_class(double &value);
         double get_class(int &pos);
+        int no_classes()const;
 };

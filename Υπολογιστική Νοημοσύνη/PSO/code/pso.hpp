@@ -1,5 +1,6 @@
-#include "problem.h"
-#include "collection.h"
+#pragma once
+#include "problem.hpp"
+#include "collection.hpp"
 
 class PSO
 {

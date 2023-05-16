@@ -1,20 +1,67 @@
 #include "mlp_problem.hpp"
 
-MlpProblem::MlpProblem(Dataset *d,int n):data(d),nodes(n),eng(mt19937(high_resolution_clock::now())),Problem((d->dimension()+2)*n) {
+MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):data(d),nodes(n),Problem((d->dimension()+2)*n) {
     for(int i=0;i<this->nodes;i++)
     {
         this->weights[i].resize(d->dimension()+2);
     }
     this->left_margin.resize(this->dimension);
     this->right_margin.resize(this->dimension);
+    double lower_bound,upper_bound;
+
+
+    if(weight_initialization_technique=="")
+    {
+        lower_bound=-10;
+        upper_bound=10;
+    }
+    else if(weight_initialization_technique=="Random")
+    {
+        lower_bound=-0.01;
+        upper_bound=0.01;
+    }
+    else if(weight_initialization_technique=="Xavier")
+    {
+        lower_bound=-1/sqrt(d->dimension());
+        upper_bound=1/sqrt(d->dimension());
+    }
+    else if(weight_initialization_technique=="UXavier")
+    {
+        lower_bound=-6/sqrt(d->dimension()+n);
+        upper_bound=6/sqrt(d->dimension()+n);
+    }
+
+
+    // set left and right margin to [-10,10]
+    for(int i=0;i<this->dimension;i++)
+    {
+        this->left_margin[i]=lower_bound;
+        this->right_margin[i]=upper_bound;
+    }
 }
+
 MlpProblem::~MlpProblem() {}
 
+// setters
 void MlpProblem::set_weights(map <int,Data> &w) {this->weights=w;}
 
-void MlpProblem::set_weight_init(string weight_init_value)
+void MlpProblem::set_weights(Data &w)
 {
-    this->weight_init=weight_init_value;
+    assert(w.size()==this->dimension);
+    for(int i=0;i<this->nodes;i++)
+    {
+        this->weights[i].resize(this->data->dimension()+2);
+    }
+    
+    int weight_size=this->data->dimension()+2;
+    int node_i,pos;
+
+    for(int i=0;i<this->dimension;i++)
+    {
+        node_i=i/weight_size;
+        pos=i%weight_size;
+        this->weights[node_i][pos]=w[i];
+    }
 }
 
 void MlpProblem::set_nodes(int units)
@@ -22,55 +69,27 @@ void MlpProblem::set_nodes(int units)
     this->nodes=units;
 }
 
-map <int,Data> MlpProblem::get_weights()const {return this->weights;}
 
-string MlpProblem::get_weight_init()const
-{
-    return this->weight_init;
-}
+
+// getters
+map <int,Data> MlpProblem::get_weights()const {return this->weights;}
  
 int MlpProblem::get_nodes()const
 {
     return this->nodes;
 }
 
-Data MlpProblem::get_sample()
-{
-    uniform_real_distribution <double> rand_real;
-    if(this->weight_init=="Random")
-    {
-        rand_real.param(uniform_real_distribution<double>::param_type(-0.01,0.01));
-    }
-    else if(this->weight_init=="Xavier")
-    {
-        rand_real.param(uniform_real_distribution<double>::param_type(-1/sqrt(this->data->dimension()),1/sqrt(this->data->dimension())));
-    }
-    else if(this->weight_init=="UXavier")
-    {
-        rand_real.param(uniform_real_distribution<double>::param_type(-6/sqrt(this->data->dimension()+this->nodes),6/sqrt(this->data->dimension()+this->nodes)));
-    }
 
-    for(int i=0;i<this->nodes;i++)
-    {
-        this->weights[i].resize(this->data->dimension()+2);
-        for(int j=0,t=this->weights[i].size();j<t;j++)
-        {
-            this->weights[i][j]=rand_real(this->eng);
-        }
-    }
-}
-
-double MlpProblem::minimize_function(map <int,Data> &w)
+double MlpProblem::minimize_function(Data &w)
 {
     this->set_weights(w);
     if(this->data->get_category()==Category::CLF)
     {
-
-        return this->sparse_categorical_crossentropy();
+        return this->categorical_crossentropy();
     }
     else if(this->data->get_category()==Category::REG)
     {
-
+        return this->mse();
     }
 }
 
@@ -93,7 +112,7 @@ Data MlpProblem::gradient(map <int,Data> &x)
         }
     }
 
-    for(int j=0,js=x.size();j<js;j++)
+    for(int j=0,js=g.size();j<js;j++)
     {
         g[j]*=2.0;
     }
@@ -102,7 +121,7 @@ Data MlpProblem::gradient(map <int,Data> &x)
 
 double MlpProblem::sigmoid(double x)
 {
-    return 1.0/(1.0+exp(-1.0));
+    return 1.0/(1.0+exp(-x));
 }
 
 double MlpProblem::sigmoid_derivative(double &x)
@@ -125,7 +144,7 @@ double MlpProblem::output(Data &x)
             dot_product+=this->weights[i-1][j]*x[j-1];
         }
         dot_product+=this->weights[i-1][d+1];
-        model_output+=this->weights[i-1][d+1] * this->sigmoid(dot_product);
+        model_output+=this->weights[i-1][0] * this->sigmoid(dot_product);
     }
     return model_output;
 }
@@ -145,7 +164,7 @@ Data MlpProblem::get_derivative(Data &x)
             dot_product+=this->weights[i-1][j]*x[j-1];
         }
         dot_product+=this->weights[i-1][d+1];
-        G[(d+2)*i-1]=this->weights[i][0]*this->sigmoid_derivative(dot_product);
+        G[(d+2)*i-1]=this->weights[i-1][0]*this->sigmoid_derivative(dot_product);
         G[(d+2)*i-(d+1)-1]=this->sigmoid(dot_product);
 
         for(int k=1;k<=d;k++)
@@ -156,35 +175,19 @@ Data MlpProblem::get_derivative(Data &x)
     return G;
 }
 
-double MlpProblem::binary_crossentropy()
+double MlpProblem::categorical_crossentropy()
 {
-    double total_loss=0;
-    double predicted_value,predicted_class,actual_class;
+    double loss=0;
+    double actual_class,predicted_value,predicted_class;
     Data xi_point;
-    for(int i=0,t=this->data->count();i<t;i++)
+    for(int i=0;i<this->data->count();i++)
     {
         xi_point=this->data->get_xpointi(i);
         actual_class=this->data->get_class(i);
         predicted_value=this->output(xi_point);
-        predicted_class=this->data->get_class(predicted_value);
-        total_loss+=-(actual_class * log(predicted_class)+(1-actual_class)*log(1-predicted_class));
+        loss-=actual_class*log(predicted_value)+(1-actual_class) * log(1-predicted_value);
     }
-    return total_loss;
-}
-
-double MlpProblem::sparse_categorical_crossentropy()
-{
-    double total_loss=0.0;
-    Data xi_point;
-    double predicted_value,predicted_class,actual_class;
-    for(int i=0,t=this->data->count();i<t;i++)
-    {
-        xi_point=this->data->get_xpointi(i);
-        predicted_value=this->output(xi_point);
-        actual_class=this->data->get_class(i);
-        total_loss+=actual_class*log(predicted_value);
-    }
-    return total_loss;
+    return loss;
 }
 
 double MlpProblem::rmse()
@@ -217,6 +220,57 @@ double MlpProblem::mse()
 
 double MlpProblem::get_train_error()
 {
-
+    double error=0.0;
+    Data xi_point;
+    double predicted_value;
+    if(this->data->get_category()==Category::CLF)
+    {
+        for(int i=0,t=this->data->count();i<t;i++)
+        {
+            xi_point=this->data->get_xpointi(i);
+            predicted_value=this->output(xi_point);
+            error+=(fabs(this->data->get_class(predicted_value)-this->data->get_class(i))<=1e-4);
+        }
+    }
+    else{
+        for(int i=0,t=this->data->count();i<t;i++)
+        {
+            xi_point=this->data->get_xpointi(i);
+            predicted_value=this->output(xi_point);
+            error+=(predicted_value-this->data->get_ypointi(i));
+        }
+    }
+    return error;
 }
 
+
+double MlpProblem::get_test_error(Dataset *test_dt)
+{
+    double error=0.0,predicted_value;
+    Data xi_point;
+    if(this->data->get_category()==Category::CLF)
+    {
+        double actual_class,predicted_class;
+        for(int i=0,t=test_dt->count();i<t;i++)
+        {
+            xi_point=test_dt->get_xpointi(i);
+            actual_class=test_dt->get_class(i);
+            predicted_value=this->output(xi_point);
+            predicted_class=test_dt->get_class(predicted_value);
+            error+=(fabs(predicted_class-actual_class)<=1e-4);
+        }
+        error=(error*100.0)/test_dt->count();
+    }
+    else
+    {
+        double actual_value;
+        for(int i=0,t=test_dt->count();i<t;i++)
+        {
+            xi_point=test_dt->get_xpointi(i);
+            predicted_value=this->output(xi_point);
+            actual_value=test_dt->get_ypointi(i);
+            error+=(predicted_value-actual_value);
+        }
+    }
+    return error;
+}

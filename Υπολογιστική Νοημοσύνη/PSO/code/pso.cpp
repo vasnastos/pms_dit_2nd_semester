@@ -1,4 +1,4 @@
-#include "pso.h"
+#include "pso.hpp"
 
 PSO::PSO(Problem *p,int number_of_iterations=1000,int particle_count=500):problem(p),max_iters(number_of_iterations),particle_count(particle_count),iter(0),inertia_max(0.999),inertia_min(0.4) {
     this->eng=mt19937(random_device{});
@@ -6,16 +6,17 @@ PSO::PSO(Problem *p,int number_of_iterations=1000,int particle_count=500):proble
     // // Standard PSO
     // this->c1=2.0;
     // this->c2=2.0;
+    // this->c3=2.0;
 
     // // Constriction factor PSO
     // this->c1=1.49618;
     // this->c2=1.49618;
+    // this->c3=1.49618;
 
     // Clerc's PSO(emphasis on global best position)
     this->c1=0.72984;
     this->c2=0.72984;
     this->c3=0.72984;
-
 }
 
 PSO::~PSO() {}
@@ -68,7 +69,7 @@ void PSO::step()
 
     for(int i=0;i<this->particle_count;i++)
     {   
-        geometric_center_points=this->geometric_center();
+        // geometric_center_points=this->geometric_center();
         this->particle.get_point(i,x,y);
         this->velocity.get_point(i,velocity_x,velocity_y);
         this->best_particle.get_point(i,bx,by);
@@ -100,6 +101,7 @@ void PSO::step()
         y=this->problem->minimize_function(x);
         this->particle.replace_point(i,x,y);
 
+
         // Check for best points
         if(y<by)
         {
@@ -118,7 +120,7 @@ void PSO::solve()
 {
     this->iter=0;
     uniform_real_distribution<double> rand_real;
-    Data x,velocity_;;
+    Data x,velocity_;
     double y,velocity_y=0;
 
 

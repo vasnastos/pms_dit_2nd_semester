@@ -13,7 +13,7 @@ string Dataset::get_id()const
     return this->id;
 }
 
-void Dataset::read(string filename,string separator)
+void Dataset::read(string filename,string separator,bool has_categorical)
 {
     fstream fp;
     fp.open(filename,ios::in);
@@ -21,31 +21,76 @@ void Dataset::read(string filename,string separator)
     vector <string> data;
     size_t start_pos,seperator_pos;
 
-    while(getline(fp,line))
+    if(has_categorical)
     {
-
-        data.clear();
-        // Split the data
-        start_pos=0;
-        seperator_pos=line.find(separator);
-
-        while(seperator_pos!=string::npos)
+        vector <string> labels;
+        set <string> distinct_labels;
+        int index=0;
+        while(getline(fp,line))
         {
-            substring=line.substr(start_pos,seperator_pos-start_pos);
-            data.emplace_back(substring);
-            start_pos=seperator_pos+substring.length();
-            seperator_pos=line.find(separator,start_pos);
+            data.clear();
+            // Split the data
+            start_pos=0;
+            seperator_pos=line.find(separator);
+
+            while(seperator_pos!=string::npos)
+            {
+                substring=line.substr(start_pos,seperator_pos-start_pos);
+                data.emplace_back(substring);
+                start_pos=seperator_pos+substring.length();
+                seperator_pos=line.find(separator,start_pos);
+            }
+
+            data.emplace_back(line.substr(start_pos));
+            
+            Data row;
+            for(int i=0,t=data.size()-1;i<t;i++)
+            {
+                row.emplace_back(stod(data.at(i)));
+            }
+            this->xpoint.emplace_back(row);
+            labels.emplace_back(data.at(data.size()-1));
+            distinct_labels.insert(data.at(data.size()-1));
         }
 
-        data.emplace_back(line.substr(start_pos));
-        
-        Data row;
-        for(int i=0,t=data.size()-1;i<t;i++)
+        for(const auto &label:labels)
         {
-            row.emplace_back(stod(data.at(i)));
+            index=0;
+            for(auto itr=distinct_labels.begin();itr!=distinct_labels.end();itr++)
+            {
+                if(label==*itr) break;
+                index++;
+            }
+            this->ypoint.emplace_back(static_cast<double>(index));
         }
-        this->xpoint.emplace_back(row);
-        this->ypoint.emplace_back(data.at(data.size()-1));
+    }
+    else
+    {
+        while(getline(fp,line))
+        {
+            data.clear();
+            // Split the data
+            start_pos=0;
+            seperator_pos=line.find(separator);
+
+            while(seperator_pos!=string::npos)
+            {
+                substring=line.substr(start_pos,seperator_pos-start_pos);
+                data.emplace_back(substring);
+                start_pos=seperator_pos+substring.length();
+                seperator_pos=line.find(separator,start_pos);
+            }
+
+            data.emplace_back(line.substr(start_pos));
+            
+            Data row;
+            for(int i=0,t=data.size()-1;i<t;i++)
+            {
+                row.emplace_back(stod(data.at(i)));
+            }
+            this->xpoint.emplace_back(row);
+            this->ypoint.emplace_back(data.at(data.size()-1));
+        }
     }
     fp.close();
 }
@@ -211,7 +256,7 @@ void Dataset::make_patterns()
 
     for(auto &pattern:this->ypoint)
     {
-        if(find_if(this->patterns.begin(),this->patterns.end(),[&](const double &c) {return fabs(pattern-c)<1e-5;})==this->patterns.end())
+        if(find_if(this->patterns.begin(),this->patterns.end(),[&](const double &c) {return fabs(pattern-c)<=1e-4;})==this->patterns.end())
         {
             this->patterns.emplace_back(pattern);
         }
@@ -265,4 +310,9 @@ double Dataset::get_class(int &pos)
     }
     double y_value=this->get_ypointi(pos);
     return this->get_class(y_value);
+}
+
+int Dataset::no_classes()const
+{
+    return this->patterns.size();
 }

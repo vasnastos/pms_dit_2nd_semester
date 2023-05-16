@@ -1,5 +1,4 @@
-#include "problem.h"
-#include <cassert>
+#include "problem.hpp"
 
 
 class ApProblem:public Problem

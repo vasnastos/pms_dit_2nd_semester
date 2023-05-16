@@ -1,7 +1,7 @@
-#include "problem.h"
+#include "problem.hpp"
 
 Problem::Problem(int d):dimension(d) {
-    this->mt=mt19937(random_device{});
+    this->eng=mt19937(random_device{});
     this->left_margin.resize(d);
     this->right_margin.resize(d);
 }
@@ -40,7 +40,7 @@ Data Problem::get_sample()
     coefficients.resize(this->dimension);
     for(int i=0;i<this->dimension;i++)
     {
-        coefficients[i]=this->left_margin[i]+(this->right_margin[i]-this->left_margin[i])*rand_real(this->mt);
+        coefficients[i]=this->left_margin[i]+(this->right_margin[i]-this->left_margin[i])*rand_real(this->eng);
     }
     return coefficients;
 }

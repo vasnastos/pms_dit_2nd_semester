@@ -1,4 +1,5 @@
-#include "problem.h"
+#pragma once
+#include "problem.hpp"
 #include <cmath>
 
 class Collection
