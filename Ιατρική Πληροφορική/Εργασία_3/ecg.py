@@ -1,5 +1,8 @@
-import os,numpy as np
+import os,numpy as np,statistics
 import matplotlib.pyplot as plt
+from tabulate import tabulate
+from scipy.stats import skew,kurtosis
+
 
 def dft(signal):
     N=len(signal)
@@ -55,6 +58,31 @@ class ECG:
         self.ecg_signal=np.loadtxt(os.path.join('','ecg.txt'))
         self.sliced_signal=self.ecg_signal[50:300]
     
+    def plot_signal(self):
+        plt.figure(figsize=(10,6))
+        plt.plot(np.arange(len(self.sliced_signal)),self.sliced_signal,color='r')
+        ax=plt.gca()
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        plt.savefig(os.path.join('','figures','singal.png'))
+        plt.show()
+    
+    def statistics(self):
+        q1,q3,_=statistics.quantiles(data=self.sliced_signal,n=4)
+        rows=[
+            ['Samples',self.sliced_signal.shape[0]],
+            ['Mean',statistics.mean(self.sliced_signal)],
+            ['Median',statistics.median(self.sliced_signal)],
+            ['Std',statistics.stdev(self.sliced_signal)],
+            ['Iqr',q3-q1],
+            ['Skewness',skew(self.sliced_signal)],
+            ['Kurtosis',kurtosis(self.sliced_signal)]
+        ]
+        print(tabulate(tabular_data=rows,headers=['Statistic Meter','Value'],tablefmt='fancy_grid',floatfmt='.3f'))
+        with open(os.path.join('stats.tex'),'w') as writer:
+            writer.write(tabulate(tabular_data=rows,headers=['Statistic Meter','Value'],tablefmt='latex',floatfmt='.3f'))
+
+
     def normalize_carediogram(self,shock_response):
         signal_fft=np.fft.fft(self.sliced_signal)
         shock_response_fft=np.fft.fft(shock_response,len(self.sliced_signal))
@@ -82,10 +110,7 @@ class ECG:
         Ry,Iy=idft(RFy,IFy)
         freq_signal=len(signal_copy) * Ry
         return freq_signal
-
-    def statistics(self):
-        pass
-
+    
     def plot_sliced_and_normalized(self):
         normalized_cardiogram=self.normalize_carediogram(np.array([0.25,0.5,0.25]))
         plt.figure(figsize=(10,6))
@@ -106,7 +131,7 @@ class ECG:
         ax=plt.gca()
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
-        plt.xticks(np.arange(0,300,20))
+        # plt.xticks(np.arange(0,300,20))
         plt.savefig(os.path.join('','figures','shifted_cardiogram.png'))
         plt.show()
 #                           Answer-Question 2
@@ -144,6 +169,8 @@ class ECG:
 
 if __name__=='__main__':
     ecg_signal=ECG()
+    ecg_signal.plot_signal()
+    ecg_signal.statistics()
     ecg_signal.plot_sliced_and_normalized()
     ecg_signal.plot_sliced_and_correlated()
     ecg_signal.plot_sliced_convolution_freq()
