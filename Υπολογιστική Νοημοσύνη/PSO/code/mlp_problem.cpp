@@ -40,9 +40,50 @@ MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):
     }
 }
 
+MlpProblem::MlpProblem():nodes(0) {}
+
 MlpProblem::~MlpProblem() {}
 
 // setters
+
+void MlpProblem::load(string filepath,int nodes,string wit)
+{
+    this->data=new Dataset;
+    this->data->read(filepath,",");
+    this->nodes=nodes;
+    this->set_dimension((this->data->dimension()+2)*nodes);
+    double lower_bound,upper_bound;
+
+    if(wit=="")
+    {
+        lower_bound=-10;
+        upper_bound=10;
+    }
+    else if(wit=="Random")
+    {
+        lower_bound=-0.01;
+        upper_bound=0.01;
+    }
+    else if(wit=="Xavier")
+    {
+        lower_bound=-1/sqrt(this->data->dimension());
+        upper_bound=1/sqrt(this->data->dimension());
+    }
+    else if(wit=="UXavier")
+    {
+        lower_bound=-6/sqrt(this->data->dimension()+this->nodes);
+        upper_bound=6/sqrt(this->data->dimension()+this->nodes);
+    }
+
+
+    // set left and right margin to [-10,10]
+    for(int i=0;i<this->dimension;i++)
+    {
+        this->left_margin[i]=lower_bound;
+        this->right_margin[i]=upper_bound;
+    }
+}
+
 void MlpProblem::set_weights(map <int,Data> &w) {this->weights=w;}
 
 void MlpProblem::set_weights(Data &w)
@@ -70,6 +111,11 @@ void MlpProblem::set_nodes(int units)
 }
 
 
+void MlpProblem::flush()
+{
+    delete this->data;
+}
+
 
 // getters
 map <int,Data> MlpProblem::get_weights()const {return this->weights;}
@@ -93,7 +139,7 @@ double MlpProblem::minimize_function(Data &w)
     }
 }
 
-Data MlpProblem::gradient(map <int,Data> &x)
+Data MlpProblem::gradient(Data &x)
 {
     Data g;
     this->set_weights(x);
@@ -112,10 +158,11 @@ Data MlpProblem::gradient(map <int,Data> &x)
         }
     }
 
-    for(int j=0,js=g.size();j<js;j++)
-    {
-        g[j]*=2.0;
-    }
+    // Removed it for categorical crossentropy
+    // for(int j=0,js=g.size();j<js;j++)
+    // {
+    //     g[j]*=2.0;
+    // }
     return g;
 }
 
@@ -154,7 +201,7 @@ Data MlpProblem::get_derivative(Data &x)
     double dot_product;
     int d=this->data->dimension();
     Data G;
-    G.resize((d+2)*this->nodes);
+    G.resize(this->dimension);
 
     for(int i=1;i<=this->nodes;i++)
     {
@@ -185,7 +232,7 @@ double MlpProblem::categorical_crossentropy()
         xi_point=this->data->get_xpointi(i);
         actual_class=this->data->get_class(i);
         predicted_value=this->output(xi_point);
-        loss-=actual_class*log(predicted_value)+(1-actual_class) * log(1-predicted_value);
+        loss-=actual_class * log(predicted_value)+(1-actual_class) * log(1-predicted_value);
     }
     return loss;
 }
@@ -231,6 +278,7 @@ double MlpProblem::get_train_error()
             predicted_value=this->output(xi_point);
             error+=(fabs(this->data->get_class(predicted_value)-this->data->get_class(i))<=1e-4);
         }
+        error=(error*100.0)/this->data->count();
     }
     else{
         for(int i=0,t=this->data->count();i<t;i++)
@@ -273,4 +321,10 @@ double MlpProblem::get_test_error(Dataset *test_dt)
         }
     }
     return error;
+}
+
+
+string MlpProblem::description()
+{
+    return this->data->id;
 }

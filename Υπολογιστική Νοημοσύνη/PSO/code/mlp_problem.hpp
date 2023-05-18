@@ -12,19 +12,24 @@ class MlpProblem:public Problem
 
     public:
         MlpProblem(Dataset *d,int n,string weight_initialization_technique="");
+        MlpProblem();
         ~MlpProblem();
 
+        void load(string filepath,int nodes,string wit);
         void set_weights(map <int,Data> &w);
         void set_weights(Data &w);
         void set_nodes(int units);
-       
+        void flush();
+
+
+
 
         map <int,Data> get_weights()const;
         int get_nodes()const;
         Data get_sample();
 
         double minimize_function(Data &x);
-        Data gradient(map <int,Data> &x);
+        Data gradient(Data &x);
         double sigmoid(double x);
         double sigmoid_derivative(double &x);
         double output(Data &x);
@@ -36,4 +41,6 @@ class MlpProblem:public Problem
 
         double get_train_error();
         double get_test_error(Dataset *test_dt);
+
+        string description();
 };

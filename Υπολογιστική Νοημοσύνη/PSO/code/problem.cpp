@@ -1,11 +1,19 @@
 #include "problem.hpp"
 
+
+Problem::Problem() {}
+
 Problem::Problem(int d):dimension(d) {
     this->eng=mt19937(random_device{});
     this->left_margin.resize(d);
     this->right_margin.resize(d);
 }
 
+void Problem::set_dimension(int dim) {
+    this->dimension=dim;
+    this->left_margin.resize(dim);
+    this->right_margin.resize(dim);
+}
 
 void Problem::set_left_margin(Data &x)
 {
@@ -68,4 +76,16 @@ double Problem::grms(Data &x)
         s+=pow(gradients[i],2);
     }
     return sqrt(s/x.size());
+}
+
+
+// Some Virtual functions
+void Problem::load(string filepath,int nodes,string wit)
+{
+    cout<<"Load function(filepath,nodes,wit) could be used in an mlp problem"<<endl;
+}
+
+void Problem::flush()
+{
+    cout<<"Function that reallocates memory that can be used in a derived class"<<endl;
 }
