@@ -1,6 +1,5 @@
-#include "problem.hpp"
 #include "dataset.hpp"
-
+#include "pso.hpp"
 
 
 class MlpProblem:public Problem
@@ -34,6 +33,7 @@ class MlpProblem:public Problem
         double sigmoid_derivative(double &x);
         double output(Data &x);
         Data get_derivative(Data &x);
+        string description();
 
         double categorical_crossentropy();
         double rmse();
@@ -42,5 +42,5 @@ class MlpProblem:public Problem
         double get_train_error();
         double get_test_error(Dataset *test_dt);
 
-        string description();
+        void pso_training();
 };

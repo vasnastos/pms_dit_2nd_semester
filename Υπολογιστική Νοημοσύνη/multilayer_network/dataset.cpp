@@ -95,6 +95,7 @@ void Dataset::read(string filename,string separator,bool has_categorical)
         }
     }
     fp.close();
+    this->make_patterns();
 }
 
 int Dataset::dimension()const

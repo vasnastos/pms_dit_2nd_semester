@@ -95,6 +95,7 @@ void Dataset::read(string filename,string separator,bool has_categorical)
         }
     }
     fp.close();
+    this->make_patterns();
 }
 
 int Dataset::dimension()const
@@ -232,6 +233,12 @@ void Dataset::normalization(string ntype)
     }
 }
 
+void Dataset::set_data(vector <Data> &xpoint_set,Data &ypoint_set)
+{
+    this->xpoint=xpoint_set;
+    this->ypoint=ypoint_set;
+}
+
 Data Dataset::get_xpointi(int pos)
 {
     if(pos<0 || pos>=this->count() || this->xpoint.empty())
@@ -317,4 +324,83 @@ double Dataset::get_class(int &pos)
 int Dataset::no_classes()const
 {
     return this->patterns.size();
+}
+
+pair <Dataset,Dataset> Dataset::stratify_train_test_split(double test_size)
+{
+    vector <Data> train_xpoint_set;
+    vector <Data> test_xpoint_set;
+    Data train_ypoint_set;
+    Data test_ypoint_set;
+
+    map <double,int> class_counter;
+    for(auto &pattern:this->patterns)
+    {
+        class_counter[pattern]=std::accumulate(this->ypoint.begin(),this->ypoint.end(),0,[&](int s,const double &y) {return s+(fabs(pattern-y)<=1e-4);});
+    }
+
+    map <double,int> train_sizes;
+    int total_count=0;
+    for(auto &[pattern,count]:class_counter)
+    {
+        train_sizes[pattern]=count*(1.0-test_size);
+        total_count+=count*(1.0-test_size);
+    }
+
+    mt19937 eng(high_resolution_clock::now());
+    uniform_int_distribution <int> rand_int(0,this->count()-1);
+    vector <int> test_indeces;
+    vector <int> train_indeces;
+
+    for(int sample_idx=0;sample_idx<this->count();sample_idx++)
+    {
+        test_indeces.emplace_back(sample_idx);
+    }
+
+    int index;
+    double actual_class;
+    bool found;
+
+    for(int i=0;i<total_count;i++)
+    {
+        found=false;
+        do{
+            index=rand_int(eng);
+            auto itr=find(train_indeces.begin(),train_indeces.end(),index);
+            if(itr!=train_indeces.end()) continue;
+
+            actual_class=this->get_class(this->ypoint[index]);
+            if(train_sizes[actual_class]==0)
+            {
+                continue;
+            }
+            train_sizes[actual_class]--;
+            train_indeces.emplace_back(index);
+            test_indeces.erase(find(test_indeces.begin(),test_indeces.end(),index));
+            found=true;
+        }while(!found);
+    }
+
+    for(auto &idx:train_indeces)
+    {
+        train_xpoint_set.emplace_back(this->get_xpointi(idx));
+        train_ypoint_set.emplace_back(this->get_ypointi(idx));
+    }
+
+    for(auto &idx:test_indeces)
+    {
+        test_xpoint_set.emplace_back(this->get_xpointi(idx));
+        test_ypoint_set.emplace_back(this->get_ypointi(idx));
+    }
+
+    Dataset train_dt;
+    Dataset test_dt;
+
+    train_dt.set_data(train_xpoint_set,train_ypoint_set);
+    test_dt.set_data(test_xpoint_set,test_ypoint_set);
+
+    train_dt.set_id(this->id+"_train");
+    test_dt.set_id(this->id+"_test");
+
+    return pair <Dataset,Dataset>(train_dt,test_dt);
 }

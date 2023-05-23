@@ -28,13 +28,12 @@ class Dataset
 
         void set_id(string &dataset_id);
         void set_category(Category &cat);
+        void set_data(vector <Data> &xpoint_set,Data &ypoint_set);
+        void read(string filename,string separator,bool has_categorical=false);
 
         string get_id()const;
         Category get_category()const;
         string get_named_category()const;
-
-        void read(string filename,string separator,bool has_categorical=false);
-
         Data get_xpointi(int pos);
         double get_ypointi(int pos);
 
@@ -56,4 +55,6 @@ class Dataset
         double get_class(double &value);
         double get_class(int &pos);
         int no_classes()const;
+
+        pair <Dataset,Dataset> stratify_train_test_split(double test_size=0.3);
 };

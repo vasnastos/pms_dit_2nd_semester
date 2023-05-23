@@ -1,6 +1,7 @@
 #pragma once
 #include "problem.hpp"
 #include "collection.hpp"
+#include <fstream>
 
 class PSO
 {
@@ -13,14 +14,17 @@ class PSO
         int particle_count;
         double inertia;
         double inertia_max,inertia_min;
-        int iter;
+        size_t iter;
         size_t max_iters;
-
         Data best_x;
         double best_y;
-
+        Data y_distribution;
+        
         int c1,c2,c3;
         mt19937 eng;
+
+        bool terminated();
+        void step();
 
     public:
         PSO(Problem *p,int number_of_iterations=1000,int particle_count=500);
@@ -36,8 +40,6 @@ class PSO
         double get_best_y();
         Data geometric_center();
         
-
-        bool terminated();
-        void step();
         void solve();
+        void save_y();
 };

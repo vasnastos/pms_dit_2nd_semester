@@ -129,14 +129,16 @@ int MlpProblem::get_nodes()const
 double MlpProblem::minimize_function(Data &w)
 {
     this->set_weights(w);
-    if(this->data->get_category()==Category::CLF)
-    {
-        return this->categorical_crossentropy();
-    }
-    else if(this->data->get_category()==Category::REG)
-    {
-        return this->mse();
-    }
+    return this->get_train_error();
+    
+    // if(this->data->get_category()==Category::CLF)
+    // {
+    //     return this->categorical_crossentropy();
+    // }
+    // else if(this->data->get_category()==Category::REG)
+    // {
+    //     return this->mse();
+    // }
 }
 
 Data MlpProblem::gradient(Data &x)
@@ -211,8 +213,8 @@ Data MlpProblem::get_derivative(Data &x)
             dot_product+=this->weights[i-1][j]*x[j-1];
         }
         dot_product+=this->weights[i-1][d+1];
-        G[(d+2)*i-1]=this->weights[i-1][0]*this->sigmoid_derivative(dot_product);
-        G[(d+2)*i-(d+1)-1]=this->sigmoid(dot_product);
+        G[(d+2)*i-1]=this->weights[i-1][0]*this->sigmoid_derivative(dot_product);//bias
+        G[(d+2)*i-(d+1)-1]=this->sigmoid(dot_product);//activation
 
         for(int k=1;k<=d;k++)
         {
@@ -262,7 +264,7 @@ double MlpProblem::mse()
         predicted_value=this->output(xi_point);
         error+=pow(actual_value-predicted_value,2);
     }
-    return error/this->data->count();
+    return (error*100.0)/static_cast<double>(this->data->count());
 }
 
 double MlpProblem::get_train_error()
@@ -323,8 +325,26 @@ double MlpProblem::get_test_error(Dataset *test_dt)
     return error;
 }
 
-
 string MlpProblem::description()
 {
     return this->data->id;
+}
+
+void MlpProblem::pso_training()
+{
+    PSO pso_optimizer(this,5000,500);
+    pso_optimizer.solve();
+    pso_optimizer.save_y();
+
+    Data pso_best_weights=pso_optimizer.get_best_x();
+    cout<<"==== PSO Optimization in MLP ===="<<endl;
+    cout<<"Particles:"<<pso_optimizer.get_particle_count()<<"\tIterations:"<<pso_optimizer.get_max_iters()<<endl;
+    cout<<"Best Weights found("<<pso_optimizer.get_best_y()<<")=>[";
+    for(auto &x:pso_best_weights)
+    {
+        cout<<x<<" ";
+    }
+    cout<<"]"<<endl<<endl;
+
+    this->set_weights(pso_best_weights);
 }

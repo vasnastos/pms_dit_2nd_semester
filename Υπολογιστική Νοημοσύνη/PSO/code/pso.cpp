@@ -66,6 +66,7 @@ void PSO::step()
     int problem_dimension=this->problem->get_dimension();
     uniform_real_distribution <double> rand_real_eng(0,1);
     Data geometric_center_points;
+    this->inertia=this->inertia_max-(this->inertia_max-this->inertia_min)*this->iter/this->max_iters;
 
     for(int i=0;i<this->particle_count;i++)
     {   
@@ -73,8 +74,6 @@ void PSO::step()
         this->particle.get_point(i,x,y);
         this->velocity.get_point(i,velocity_x,velocity_y);
         this->best_particle.get_point(i,bx,by);
-
-        this->inertia=this->inertia_max-(this->inertia_max-this->inertia_min)*this->iter/this->max_iters;
 
         // update velocity
         for(int j=0;j<problem_dimension;j++)
@@ -114,6 +113,7 @@ void PSO::step()
             cout<<"ITER:"<<this->iter<<"\tObjective:"<<this->best_y<<"\tProblem:"<<this->problem->description()<<endl;
         }
     }
+    this->y_distribution.emplace_back(this->best_y);
 }
 
 void PSO::solve()
@@ -151,6 +151,26 @@ void PSO::solve()
         this->step();
     } while (!this->terminated());
     cout<<endl<<endl;
+}
+
+void PSO::save_y()
+{
+    fs::path pth(".");
+    const string filename=this->problem->description()+"_weightsd.csv";
+    for(const string path_component:{"..","results"})
+    {
+        pth.append(path_component);
+    }
+    pth.append(filename);
+
+
+    fstream writer;
+    writer.open(pth.string(),ios::out);
+    for(const auto &word:this->y_distribution)
+    {
+        writer<<word<<endl;
+    }
+    writer.close();
 }
 
 Data PSO::geometric_center()
