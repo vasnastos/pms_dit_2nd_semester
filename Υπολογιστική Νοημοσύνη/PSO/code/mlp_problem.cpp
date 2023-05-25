@@ -10,7 +10,7 @@ MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):
     double lower_bound,upper_bound;
 
 
-    if(weight_initialization_technique=="")
+    if(weight_initialization_technique=="Default")
     {
         lower_bound=-10;
         upper_bound=10;
@@ -29,6 +29,14 @@ MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):
     {
         lower_bound=-6/sqrt(d->dimension()+n);
         upper_bound=6/sqrt(d->dimension()+n);
+    }
+    else
+    {
+        uniform_real_distribution <double> random_lower_bound(-5,-10);
+        uniform_real_distribution <double> random_upper_bound(5,10);
+        
+        lower_bound=random_lower_bound(this->eng);
+        upper_bound=random_upper_bound(this->eng);
     }
 
 
@@ -50,11 +58,11 @@ void MlpProblem::load(string filepath,int nodes,string wit)
 {
     this->data=new Dataset;
     this->data->read(filepath,",");
-    this->nodes=nodes;
+    this->set_nodes(nodes);
     this->set_dimension((this->data->dimension()+2)*nodes);
     double lower_bound,upper_bound;
 
-    if(wit=="")
+    if(wit=="Default")
     {
         lower_bound=-10;
         upper_bound=10;
@@ -73,6 +81,10 @@ void MlpProblem::load(string filepath,int nodes,string wit)
     {
         lower_bound=-6/sqrt(this->data->dimension()+this->nodes);
         upper_bound=6/sqrt(this->data->dimension()+this->nodes);
+    }
+    else
+    {
+
     }
 
 
@@ -104,6 +116,7 @@ void MlpProblem::set_weights(Data &w)
         this->weights[node_i][pos]=w[i];
     }
 }
+
 
 void MlpProblem::set_nodes(int units)
 {
@@ -161,10 +174,10 @@ Data MlpProblem::gradient(Data &x)
     }
 
     // Removed it for categorical crossentropy
-    // for(int j=0,js=g.size();j<js;j++)
-    // {
-    //     g[j]*=2.0;
-    // }
+    for(int j=0,js=g.size();j<js;j++)
+    {
+        g[j]*=2.0;
+    }
     return g;
 }
 
@@ -185,15 +198,15 @@ double MlpProblem::output(Data &x)
     double model_output=0.0;
     int d=this->data->dimension();
 
-    for(int i=1;i<=this->nodes;i++)
+    for(int i=0;i<this->nodes;i++)
     {
         dot_product=0.0;
         for(int j=1;j<=d;j++)
         {
-            dot_product+=this->weights[i-1][j]*x[j-1];
+            dot_product+=this->weights[i][j]*x[j-1];
         }
-        dot_product+=this->weights[i-1][d+1];
-        model_output+=this->weights[i-1][0] * this->sigmoid(dot_product);
+        dot_product+=this->weights[i][d+1];
+        model_output+=this->weights[i][0] * this->sigmoid(dot_product);
     }
     return model_output;
 }
@@ -213,8 +226,8 @@ Data MlpProblem::get_derivative(Data &x)
             dot_product+=this->weights[i-1][j]*x[j-1];
         }
         dot_product+=this->weights[i-1][d+1];
-        G[(d+2)*i-1]=this->weights[i-1][0]*this->sigmoid_derivative(dot_product);//bias
-        G[(d+2)*i-(d+1)-1]=this->sigmoid(dot_product);//activation
+        G[(d+2)*i-1]=this->weights[i-1][0]*this->sigmoid_derivative(dot_product);//activation
+        G[(d+2)*i-(d+1)-1]=this->sigmoid(dot_product);//bias
 
         for(int k=1;k<=d;k++)
         {
@@ -224,49 +237,6 @@ Data MlpProblem::get_derivative(Data &x)
     return G;
 }
 
-double MlpProblem::categorical_crossentropy()
-{
-    double loss=0;
-    double actual_class,predicted_value,predicted_class;
-    Data xi_point;
-    for(int i=0;i<this->data->count();i++)
-    {
-        xi_point=this->data->get_xpointi(i);
-        actual_class=this->data->get_class(i);
-        predicted_value=this->output(xi_point);
-        loss-=actual_class * log(predicted_value)+(1-actual_class) * log(1-predicted_value);
-    }
-    return loss;
-}
-
-double MlpProblem::rmse()
-{
-    double error=0.0,predicted_value,actual_value;
-    Data xi_point;
-    for(int i=0,t=this->data->count();i<t;i++)
-    {
-        xi_point=this->data->get_xpointi(i);
-        actual_value=this->data->get_ypointi(i);
-        predicted_value=this->output(xi_point);
-        error+=pow(actual_value-predicted_value,2);
-    }
-    return sqrt(error/this->data->count());
-}
-
-double MlpProblem::mse()
-{
-    double error=0.0,predicted_value,actual_value;
-    Data xi_point;
-    for(int i=0,t=this->data->count();i<t;i++)
-    {
-        xi_point=this->data->get_xpointi(i);
-        actual_value=this->data->get_ypointi(i);
-        predicted_value=this->output(xi_point);
-        error+=pow(actual_value-predicted_value,2);
-    }
-    return (error*100.0)/static_cast<double>(this->data->count());
-}
-
 double MlpProblem::get_train_error()
 {
     double error=0.0;
@@ -274,6 +244,7 @@ double MlpProblem::get_train_error()
     double predicted_value;
     if(this->data->get_category()==Category::CLF)
     {
+        cout<<"CLF CAT"<<endl;
         for(int i=0,t=this->data->count();i<t;i++)
         {
             xi_point=this->data->get_xpointi(i);
@@ -332,14 +303,14 @@ string MlpProblem::description()
 
 void MlpProblem::pso_training()
 {
+    cout<<"Is here"<<endl;
     PSO pso_optimizer(this,5000,500);
     pso_optimizer.solve();
-    pso_optimizer.save_y();
 
     Data pso_best_weights=pso_optimizer.get_best_x();
     cout<<"==== PSO Optimization in MLP ===="<<endl;
     cout<<"Particles:"<<pso_optimizer.get_particle_count()<<"\tIterations:"<<pso_optimizer.get_max_iters()<<endl;
-    cout<<"Best Weights found("<<pso_optimizer.get_best_y()<<")=>[";
+    cout<<"Best Weights found(Score:"<<pso_optimizer.get_best_y()<<")=>[";
     for(auto &x:pso_best_weights)
     {
         cout<<x<<" ";
@@ -347,4 +318,50 @@ void MlpProblem::pso_training()
     cout<<"]"<<endl<<endl;
 
     this->set_weights(pso_best_weights);
+}
+
+
+
+
+double MlpProblem::categorical_crossentropy()
+{
+    double loss=0;
+    double actual_class,predicted_value,predicted_class;
+    Data xi_point;
+    for(int i=0;i<this->data->count();i++)
+    {
+        xi_point=this->data->get_xpointi(i);
+        actual_class=this->data->get_class(i);
+        predicted_value=this->output(xi_point);
+        loss-=actual_class * log(predicted_value)+(1-actual_class) * log(1-predicted_value);
+    }
+    return loss;
+}
+
+double MlpProblem::rmse()
+{
+    double error=0.0,predicted_value,actual_value;
+    Data xi_point;
+    for(int i=0,t=this->data->count();i<t;i++)
+    {
+        xi_point=this->data->get_xpointi(i);
+        actual_value=this->data->get_ypointi(i);
+        predicted_value=this->output(xi_point);
+        error+=pow(actual_value-predicted_value,2);
+    }
+    return sqrt(error/this->data->count());
+}
+
+double MlpProblem::mse()
+{
+    double error=0.0,predicted_value,actual_value;
+    Data xi_point;
+    for(int i=0,t=this->data->count();i<t;i++)
+    {
+        xi_point=this->data->get_xpointi(i);
+        actual_value=this->data->get_ypointi(i);
+        predicted_value=this->output(xi_point);
+        error+=pow(actual_value-predicted_value,2);
+    }
+    return (error*100.0)/static_cast<double>(this->data->count());
 }

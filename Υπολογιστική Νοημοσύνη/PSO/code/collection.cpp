@@ -23,7 +23,7 @@ void Collection::get_point(int index,Data &x,double &y)
 
 bool Collection::have_graph_minima(Data &x,double &y,double distance)
 {
-
+    return true;
 }
 
 void Collection::resize_in_fraction(double fraction)

@@ -4,7 +4,7 @@
 Problem::Problem() {}
 
 Problem::Problem(int d):dimension(d) {
-    this->eng=mt19937(random_device{});
+    this->eng=mt19937(high_resolution_clock::now().time_since_epoch().count());
     this->left_margin.resize(d);
     this->right_margin.resize(d);
 }

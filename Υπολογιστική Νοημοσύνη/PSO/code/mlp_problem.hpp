@@ -20,12 +20,8 @@ class MlpProblem:public Problem
         void set_nodes(int units);
         void flush();
 
-
-
-
         map <int,Data> get_weights()const;
         int get_nodes()const;
-        Data get_sample();
 
         double minimize_function(Data &x);
         Data gradient(Data &x);

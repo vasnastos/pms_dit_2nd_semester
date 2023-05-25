@@ -1,0 +1,2 @@
+g++ astring.cpp problem.cpp dataset.cpp collection.cpp pso.cpp mlp_problem.cpp main.cpp -std=c++17 -o executor
+executor 

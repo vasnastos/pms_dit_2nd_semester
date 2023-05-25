@@ -32,7 +32,7 @@ class Problem
         bool is_point_in(Data &x);
         double grms(Data &x);
 
-        virtual Data get_sample();
+        Data get_sample();
         virtual double minimize_function(Data &x)=0;
         virtual Data gradient(Data &x) = 0;
         virtual string description()=0;

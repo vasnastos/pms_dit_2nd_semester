@@ -3,9 +3,20 @@
 Dataset::Dataset():id("") {}
 Dataset::~Dataset() {}
 
-void Dataset::set_id(string &dataset_id)
+void Dataset::set_id(const string &dataset_id)
 {
     this->id=dataset_id;
+}
+
+void Dataset::set_data(vector <Data> &xpoint_set,Data &ypoint_set)
+{
+    this->xpoint=xpoint_set;
+    this->ypoint=ypoint_set;
+}
+
+void Dataset::set_category(const Category &cat)
+{
+    this->category=cat;
 }
 
 string Dataset::get_id()const
@@ -19,6 +30,12 @@ void Dataset::read(string filename,string separator,bool has_categorical)
 
     fstream fp;
     fp.open(filename,ios::in);
+    if(!fp.is_open())
+    {
+        std::cerr<<"File did not open properly:"<<filename<<endl;
+        return;
+    }
+
     string line,word,substring;
     vector <string> data;
     size_t start_pos,seperator_pos;
@@ -30,6 +47,9 @@ void Dataset::read(string filename,string separator,bool has_categorical)
         int index=0;
         while(getline(fp,line))
         {
+            if(line=="") continue;
+
+            if(startswith(line,"@")) continue;
             data.clear();
             // Split the data
             start_pos=0;
@@ -70,6 +90,8 @@ void Dataset::read(string filename,string separator,bool has_categorical)
     {
         while(getline(fp,line))
         {
+            if(line=="") continue;
+            if(trim(line)[0]=='@') continue;
             data.clear();
             // Split the data
             start_pos=0;
@@ -79,7 +101,7 @@ void Dataset::read(string filename,string separator,bool has_categorical)
             {
                 substring=line.substr(start_pos,seperator_pos-start_pos);
                 data.emplace_back(substring);
-                start_pos=seperator_pos+substring.length();
+                start_pos=seperator_pos+1;
                 seperator_pos=line.find(separator,start_pos);
             }
 
@@ -91,7 +113,7 @@ void Dataset::read(string filename,string separator,bool has_categorical)
                 row.emplace_back(stod(data.at(i)));
             }
             this->xpoint.emplace_back(row);
-            this->ypoint.emplace_back(data.at(data.size()-1));
+            this->ypoint.emplace_back(stod(data.at(data.size()-1)));
         }
     }
     fp.close();
@@ -114,7 +136,7 @@ int Dataset::count()const
 
 double Dataset::xmax(int pos)
 {
-    if(pos<0 || pos>=this->xpoint.size())
+    if(pos<0 || pos>=this->dimension() || this->xpoint.empty())
     {
         cerr<<"Position Error:"<<pos<<endl;
         return -1.0;
@@ -125,7 +147,7 @@ double Dataset::xmax(int pos)
 
 double Dataset::xmin(int pos)
 {
-    if(pos<0 || pos>=this->xpoint.size() || this->xpoint.size()==0)
+    if(pos<0 || pos>=this->dimension() || this->xpoint.size()==0)
     {
         cerr<<"Position Error:"<<pos<<endl;
         return -1.0;
@@ -140,7 +162,7 @@ double Dataset::ymax()
         return -1.0;
     }
 
-    return *std::max_element(this->ypoint.begin(),this->ypoint.end(),[&](const double &d1,const double &d2) {return d1<d2;});
+    return *std::max_element(this->ypoint.begin(),this->ypoint.end());
 }
 double Dataset::ymin()
 {
@@ -148,12 +170,12 @@ double Dataset::ymin()
     {
         return -1.0;
     }
-    return *std::min_element(this->ypoint.begin(),this->ypoint.end(),[&](const double &d1,const double &d2) {return d1<d2;});
+    return *std::min_element(this->ypoint.begin(),this->ypoint.end());
 }
 
 double Dataset::stdx(int pos)
 {
-    if(pos<0 || pos>=this->xpoint.size() || this->xpoint.size()==0)
+    if(pos<0 || pos>=this->dimension() || this->xpoint.size()==0)
     {
         cerr<<"Position Error:"<<pos<<endl;
         return -1.0;
@@ -175,7 +197,7 @@ double Dataset::stdy()
 
 double Dataset::xmean(int pos)
 {
-    if(pos<0 || pos>=this->xpoint.size() || this->xpoint.size()==0)
+    if(pos<0 || pos>=this->dimension() || this->xpoint.size()==0)
     {
         cerr<<"Position Error:"<<pos<<endl;
         return -1.0;
@@ -198,11 +220,13 @@ void Dataset::normalization(string ntype)
     {
         Data max_data,min_data;
         max_data.resize(this->dimension());
+        min_data.resize(this->dimension());
         for(int i=0,t=this->dimension();i<t;i++)
         {
             max_data[i]=this->xmax(i);
             min_data[i]=this->xmin(i);
         }
+        double maxy_data=this->ymax(),miny_data=this->ymin();
 
         for(int i=0,rows=this->count();i<rows;i++)
         {
@@ -210,13 +234,16 @@ void Dataset::normalization(string ntype)
             {
                 this->xpoint[i][j]=(this->xpoint[i][j]-min_data[j])/(max_data[j]-min_data[j]);
             }
+            this->ypoint[i]=(this->ypoint[i]-miny_data)/(maxy_data-miny_data);
         }
+        this->make_patterns();
     }
     else if(ntype=="standardization")
     {
         Data mean_data,std_data;
         mean_data.resize(this->dimension());
         std_data.resize(this->dimension());
+        double meany=this->ymean(),ystd=this->stdy();
         for(int i=0,t=this->dimension();i<t;i++)
         {
             mean_data[i]=this->xmean(i);
@@ -229,14 +256,10 @@ void Dataset::normalization(string ntype)
             {
                 this->xpoint[i][j]=(this->xpoint[i][j]-mean_data[j])/std_data[j];
             }
+            this->ypoint[i]=(this->ypoint[i]-meany)/ystd;
         }
+        this->make_patterns();
     }
-}
-
-void Dataset::set_data(vector <Data> &xpoint_set,Data &ypoint_set)
-{
-    this->xpoint=xpoint_set;
-    this->ypoint=ypoint_set;
 }
 
 Data Dataset::get_xpointi(int pos)
@@ -272,10 +295,6 @@ void Dataset::make_patterns()
     } 
 }
 
-void Dataset::set_category(Category &cat)
-{
-    this->category=cat;
-}
 
 Category Dataset::get_category()const {return this->category;}
 
@@ -328,6 +347,13 @@ int Dataset::no_classes()const
 
 pair <Dataset,Dataset> Dataset::stratify_train_test_split(double test_size)
 {
+
+    for(auto &x:this->patterns)
+    {
+        cout<<"PT:"<<x<<endl;
+    }
+    system("pause");
+
     vector <Data> train_xpoint_set;
     vector <Data> test_xpoint_set;
     Data train_ypoint_set;
@@ -340,14 +366,12 @@ pair <Dataset,Dataset> Dataset::stratify_train_test_split(double test_size)
     }
 
     map <double,int> train_sizes;
-    int total_count=0;
     for(auto &[pattern,count]:class_counter)
     {
         train_sizes[pattern]=count*(1.0-test_size);
-        total_count+=count*(1.0-test_size);
     }
 
-    mt19937 eng(high_resolution_clock::now());
+    mt19937 eng(high_resolution_clock::now().time_since_epoch().count());
     uniform_int_distribution <int> rand_int(0,this->count()-1);
     vector <int> test_indeces;
     vector <int> train_indeces;
@@ -361,24 +385,38 @@ pair <Dataset,Dataset> Dataset::stratify_train_test_split(double test_size)
     double actual_class;
     bool found;
 
-    for(int i=0;i<total_count;i++)
+    while(true)
     {
         found=false;
         do{
             index=rand_int(eng);
             auto itr=find(train_indeces.begin(),train_indeces.end(),index);
             if(itr!=train_indeces.end()) continue;
-
             actual_class=this->get_class(this->ypoint[index]);
-            if(train_sizes[actual_class]==0)
-            {
-                continue;
+            
+            for(auto &[pattern,count]:train_sizes)
+            {   
+                
+                if(fabs(pattern-actual_class)<=1e-4)    
+                {    
+                    if(count==0)
+                    {
+                        continue;
+                    }
+                    else{
+                        count--;
+                        break;
+                    }
+                }
             }
-            train_sizes[actual_class]--;
             train_indeces.emplace_back(index);
             test_indeces.erase(find(test_indeces.begin(),test_indeces.end(),index));
             found=true;
         }while(!found);
+        if(std::accumulate(train_sizes.begin(),train_sizes.end(),0,[&](int &s,const pair <double,int> &ps) {return s+ps.second;})==0)
+        {
+            break;
+        }
     }
 
     for(auto &idx:train_indeces)
@@ -395,12 +433,39 @@ pair <Dataset,Dataset> Dataset::stratify_train_test_split(double test_size)
 
     Dataset train_dt;
     Dataset test_dt;
-
-    train_dt.set_data(train_xpoint_set,train_ypoint_set);
-    test_dt.set_data(test_xpoint_set,test_ypoint_set);
-
+    
     train_dt.set_id(this->id+"_train");
     test_dt.set_id(this->id+"_test");
 
+    train_dt.set_data(train_xpoint_set,train_ypoint_set);
+    test_dt.set_data(test_xpoint_set,test_ypoint_set);
+    cout<<"End"<<endl;
     return pair <Dataset,Dataset>(train_dt,test_dt);
 }
+
+
+void Dataset::statistics()
+{
+
+}
+void Dataset::save(string filename)
+{
+
+}
+
+
+ostream &operator<<(ostream &os,Dataset &dataset)
+{
+    os<<"Id:"<<dataset.id<<endl;
+    os<<"Samples:"<<dataset.count()<<endl;
+    os<<"Dimension:"<<dataset.dimension()<<endl;
+    os<<"Classes:"<<dataset.no_classes()<<endl;
+    os<<"=== Standard Deviation ==="<<endl;
+    for(int dpos=0;dpos<dataset.dimension();dpos++)
+    {
+        cout<<"Std["<<dpos<<"]:"<<dataset.stdx(dpos)<<endl;
+    }
+    return os<<endl<<endl;
+}
+
+

@@ -41,3 +41,8 @@ void removeFileExtension(std::string &id)
         }
     }
 }
+
+bool startswith(const std::string &checkstring,const std::string &val)
+{
+    return std::regex_match(checkstring,std::regex("^"+checkstring+".*"));
+}
