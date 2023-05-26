@@ -19,7 +19,7 @@ MLP::MLP(vector <int> &ls,double lr,string wit_method,string activationf,int num
     for(int i=0;i<num_layers;i++)
     {
         this->activations[i].resize(this->layers[i]);
-        fill(this->activations.begin(),this->activations.end(),0.0);
+        fill(this->activations[i].begin(),this->activations[i].end(),0.0);
     }
 }
 
@@ -29,7 +29,7 @@ Data MLP::get_sample(int current_layer_idx)
 {
     double lb;
     double ub;
-    if(this->weight_init_method=="")
+    if(this->weight_init_method=="Default")
     {
         lb=-10;
         ub=10;
@@ -97,7 +97,7 @@ Data MLP::softmax(const Data &input)
 double MLP::dot_product(int node_i,int layer_idx)
 {
     double dp=0.0;
-    int previous_layer_size=this->layers[layer_idx];
+    int previous_layer_size=this->weights[layer_idx-1].size()/this->activations[layer_idx-1].size();
     for(int j=0;j<previous_layer_size;j++)
     {
         dp+=this->weights[layer_idx-1][node_i*this->layers[layer_idx]+j] * this->activations[layer_idx-1][j];
@@ -136,7 +136,6 @@ Data MLP::forward_pass(const Data &input)
 
     }
     return this->activations[num_layers-1]; 
-    // Argmax of the last layer
 }
 
 void MLP::backward_pass(const Data &input,const Data &targets)
@@ -156,7 +155,7 @@ void MLP::backward_pass(const Data &input,const Data &targets)
     }
 
     // Calculate gradients for hidden layers
-    for(int i=0;i<output_layer_size;i++)
+    for(int i=output_idx-1;i>0;i--)
     {
         int current_layer_size=this->activations[i].size();
         int next_layer_size=this->activations[i+1].size();
@@ -164,11 +163,12 @@ void MLP::backward_pass(const Data &input,const Data &targets)
         for(int j=0;j<current_layer_size;j++)
         {
             double error=0.0;
+            double output=this->activations[i][j];
             for(int k=0;k<next_layer_size;k++)
             {
                 error+=this->weights[i][k*current_layer_size+j]* this->gradients[i][k * current_layer_size + j];
             }
-            this->gradients[i-1][j]=error;
+            this->gradients[i-1][j]=(output) * (1.0-output) * error;  // sigmoid Derivative * dot_product
         }
     }
 

@@ -8,10 +8,29 @@
 #include <set>
 using namespace std;
 
+
+#ifdef _WIN32
+    const char sep='\\';
+#elif linux
+    const char sep='/';
+#endif
+
+
 enum class Category
 {
     CLF,
     REG
+};
+
+class Config
+{
+    public:
+        static map <string,Category> datasetsdb;
+        static vector <string> datasets;
+        static void datasets_db_config();
+        static string get_path(string filename);
+        static string get_id(string filename);
+        static Category get_category(string file_id);
 };
 
 class Dataset

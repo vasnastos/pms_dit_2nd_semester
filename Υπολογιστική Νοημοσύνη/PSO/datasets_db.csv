@@ -1,2 +1,4 @@
 Instance,Category
 phising_websites,clf
+spambase.data,clf
+german_statlog,clf
