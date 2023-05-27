@@ -38,9 +38,16 @@ class PlayGround
 
         ~PlayGround() {}
 
-        void load(string filename)
+        void solve(string filename)
         {
-            
+            Dataset *dataset=new Dataset;
+            dataset->read(Config::get_path(filename),",");
+            pair <Dataset,Dataset> split_data=dataset->stratify_train_test_split(0.3);
+            Dataset train_dt=split_data.first;
+            Dataset test_dt=split_data.second;
+            MlpProblem solver(&train_dt,10,"PSO");
+            double test_error=solver.get_test_error(&test_dt);
+            cout<<train_dt.get_id()<<"\t"<<test_error<<endl;
         }
 
 
@@ -55,23 +62,6 @@ class PlayGround
             fp.close();
         }
 };
-
-
-// int main(int argc,char **argv)
-// {
-//     PlayGround playground;
-//     PlayGround::datasets_db_config();
-
-//     cout<<"----- Datasets -----"<<endl;
-//     int i=1;
-//     for(const string &dataset:playground.datasets)
-//     {
-//         cout<<i<<">"<<dataset<<endl;
-//         i++;
-//     }
-//     playground.solve(1);
-//     return 0;
-// }
 
 
 int main(int argc,char *argv[])
