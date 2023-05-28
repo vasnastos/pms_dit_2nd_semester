@@ -30,6 +30,26 @@ MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):
         lower_bound=-6/sqrt(d->dimension()+n);
         upper_bound=6/sqrt(d->dimension()+n);
     }
+    else if(weight_initialization_technique=="PSO")
+    {
+        Data left_mergin;
+        Data right_margin;
+        left_margin.resize(this->dimension);
+        right_margin.resize(this->dimension);
+        fill(this->left_margin.begin(),this->left_margin.end(),-10.0);
+        fill(this->right_margin.begin(),this->right_margin.end(),10.0);
+
+
+        this->set_left_margin(left_margin);
+        this->set_right_margin(right_margin);
+
+        // PSO optimization in weights
+        PSO solver(this,5000,500);
+        solver.solve();
+        Data best_weights=solver.get_best_x();
+        this->set_weights(best_weights);
+        return;
+    }
     else
     {
         uniform_real_distribution <double> random_lower_bound(-5,-20);

@@ -2,6 +2,10 @@
 #include "problem.hpp"
 #include "collection.hpp"
 #include <fstream>
+#ifdef linux
+    #include <limits.h>
+#endif
+
 
 class PSO
 {
