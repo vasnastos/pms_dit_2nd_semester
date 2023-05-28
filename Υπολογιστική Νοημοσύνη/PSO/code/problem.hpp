@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <map>
 #include <cassert>
+#include <numeric>
 using namespace std;
 using namespace std::chrono;
 namespace fs=std::filesystem;

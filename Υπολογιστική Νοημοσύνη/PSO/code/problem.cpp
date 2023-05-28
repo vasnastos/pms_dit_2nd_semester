@@ -69,6 +69,8 @@ Problem::~Problem() {}
 
 double Problem::grms(Data &x)
 {
+    cout<<"PR:"<<x.size()<<endl;
+    exit(EXIT_SUCCESS);
     Data gradients=this->gradient(x);
     double s=0.0;
     for(int i=0,t=x.size();i<t;i++)

@@ -30,26 +30,6 @@ MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):
         lower_bound=-6/sqrt(d->dimension()+n);
         upper_bound=6/sqrt(d->dimension()+n);
     }
-    else if(weight_initialization_technique=="PSO")
-    {
-        Data left_mergin;
-        Data right_margin;
-        left_margin.resize(this->dimension);
-        right_margin.resize(this->dimension);
-        fill(this->left_margin.begin(),this->left_margin.end(),-10.0);
-        fill(this->right_margin.begin(),this->right_margin.end(),10.0);
-
-
-        this->set_left_margin(left_margin);
-        this->set_right_margin(right_margin);
-
-        // PSO optimization in weights
-        PSO solver(this,5000,500);
-        solver.solve();
-        Data best_weights=solver.get_best_x();
-        this->set_weights(best_weights);
-        return;
-    }
     else
     {
         uniform_real_distribution <double> random_lower_bound(-5,-20);
@@ -66,6 +46,7 @@ MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):
         this->left_margin[i]=lower_bound;
         this->right_margin[i]=upper_bound;
     }
+
 }
 
 MlpProblem::MlpProblem():nodes(0) {}
@@ -259,6 +240,35 @@ Data MlpProblem::get_derivative(Data &x)
     return G;
 }
 
+void MlpProblem::optimize_weights(string optimizer)
+{
+    Data optimized_weights;
+    if(optimizer=="Adam")
+    {
+        Adam optimizer(this);
+        optimizer.solve();
+        optimized_weights=optimizer.get_best_x();
+    }
+    else if(optimizer=="PSO")
+    {
+        PSO optimizer(this,5000,400);
+        optimizer.solve();
+        optimized_weights=optimizer.get_best_x();
+    }
+    else 
+    {
+        cerr<<"Not Implement yet"<<endl;
+    }
+
+    if(optimized_weights.empty())
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    this->set_weights(optimized_weights);
+}
+
+
 double MlpProblem::get_train_error()
 {
     double error=0.0;
@@ -317,22 +327,20 @@ double MlpProblem::get_test_error(Dataset *test_dt)
     return error;
 }
 
-void MlpProblem::pso_training()
+
+vector <pair <double,double>> MlpProblem::predict(Dataset *test_dt)
 {
-    PSO pso_optimizer(this,5000,500);
-    pso_optimizer.solve();
+    double predicted_value;
+    Data xi_point;
+    vector <pair <double,double>> predictions;
 
-    Data pso_best_weights=pso_optimizer.get_best_x();
-    cout<<"==== PSO Optimization in MLP ===="<<endl;
-    cout<<"Particles:"<<pso_optimizer.get_particle_count()<<"\tIterations:"<<pso_optimizer.get_max_iters()<<endl;
-    cout<<"Best Weights found(Score:"<<pso_optimizer.get_best_y()<<")=>[";
-    for(auto &x:pso_best_weights)
+    for(int i=0,t=test_dt->count();i<t;i++)
     {
-        cout<<x<<" ";
+        xi_point=test_dt->get_xpointi(i);
+        predicted_value=this->output(xi_point);
+        predictions.emplace_back(make_pair(test_dt->get_class(i),test_dt->get_class(predicted_value)));
     }
-    cout<<"]"<<endl<<endl;
-
-    this->set_weights(pso_best_weights);
+    return predictions;
 }
 
 

@@ -1,37 +1,12 @@
 #pragma once
-#include "astring.hpp"
+#include "base.hpp"
 #include "problem.hpp"
-#include <fstream>
-#include <sstream>
 #include <numeric>
 #include <algorithm>
 #include <set>
 using namespace std;
 
 
-#ifdef _WIN32
-    const char sep='\\';
-#elif linux
-    const char sep='/';
-#endif
-
-
-enum class Category
-{
-    CLF,
-    REG
-};
-
-class Config
-{
-    public:
-        static map <string,Category> datasetsdb;
-        static vector <string> datasets;
-        static void datasets_db_config();
-        static string get_path(string filename);
-        static string get_id(string filename);
-        static Category get_category(string file_id);
-};
 
 class Dataset
 {
@@ -48,7 +23,7 @@ class Dataset
         void set_id(const string &dataset_id);
         void set_category(const Category &cat);
         void set_data(vector <Data> &xpoint_set,Data &ypoint_set);
-        void read(string filename,string separator,bool has_categorical=false);
+        void read(string filename,bool has_categorical=false);
 
         string get_id()const;
         Category get_category()const;
@@ -78,6 +53,7 @@ class Dataset
         double get_class(int &pos);
         int no_classes()const;
 
+    
         pair <Dataset,Dataset> stratify_train_test_split(double test_size=0.3);
         friend ostream &operator<<(ostream &os,Dataset &dataset);
 };

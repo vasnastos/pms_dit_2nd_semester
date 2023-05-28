@@ -6,70 +6,81 @@ struct Solution
     string id;
     string weight_init;
     string normalization;
+    double test_error;
     double accuracy;
-    Solution(string sid,string wit,string norm,double acc):id(sid),weight_init(wit),normalization(norm),accuracy(acc) {}
+    Solution(string sid,string wit,string norm,double test_error,double acc):id(sid),weight_init(wit),normalization(norm),test_error(test_error),accuracy(acc) {}
 };
 
-typedef vector <Solution> SolutionPool;
-class PlayGround
+class Arena
 {
-    
     private:
         string results_path;
-    
+        string arena_file;
+        vector <Solution> results;
     public:
-        static map <string,Category> datasetsdb;
-        PlayGround()
-        {
-
+        Arena() {
             // Create results file
-            fs::path pth(".");
+            fs::path pth;
             for(const string &x:{"..","results","arena.csv"})
             {
                 pth.append(x);
             }
 
             fstream fp;
-            this->results_path=pth.string();
+            this->arena_file=pth.string();
             fp.open(this->results_path,ios::out);
-            fp<<"Dataset,Weight Init,Normalization,Accuracy"<<endl;
+            fp<<"Dataset,Weight Init,Normalization,Test Error,Accuracy"<<endl;
             fp.close();
-        }
 
-        ~PlayGround() {}
-
-        void solve(string filename,string normalization)
-        {
-            SolutionPool sols;
-            Dataset *dataset=new Dataset;
-            dataset->read(Config::get_path(filename),",");
-            dataset->normalization(normalization);
-            pair <Dataset,Dataset> split_data=dataset->stratify_train_test_split(0.3);
-            Dataset train_dt=split_data.first;
-            Dataset test_dt=split_data.second;
-            
-            for(const string &wit:{"Default","Random","Xavier","UXavier","PSO"})
+            pth=fs::path();
+            for(const string &x:{"..","results"})
             {
-                MlpProblem solver(&train_dt,10,wit);
-                double test_error=solver.get_test_error(&test_dt);
-                cout<<train_dt.get_id()<<" "<<normalization<<" "<<wit<<"::"<<test_error<<endl;
-                sols.emplace_back(Solution(train_dt.get_id(),wit,normalization,test_error));
+                pth.append(x);
             }
-            this->save_results(sols);
+            this->results_path=pth.string();
         }
 
-        void save_results(vector <Solution> &solution_pool)
+        void entrance(string filename)
+        {
+            Dataset *dataset,train_dt,test_dt;
+            double error;
+            int experiment_id=1;
+
+            for(const string &x:{"min-max","standardization"})
+            {
+                dataset=new Dataset;
+                dataset->read(filename);
+                dataset->normalization(x);
+                pair <Dataset,Dataset> split_data=dataset->stratify_train_test_split(0.5);
+                train_dt=split_data.first;
+                test_dt=split_data.second;
+                for(const string &wit:{"Random","Xavier","UXavier"})
+                {
+                    MlpProblem model(dataset,10,wit);
+                    for(const string &optimizer:{"Adam","PSO"})
+                    {
+                        cout<<"Id:"<<experiment_id<<"  Dimension:"<<model.get_dimension()<<"  Normalization:"<<x<<"  WeightInit:"<<wit<<"  TrainMethod:"<<optimizer<<endl;
+                        model.optimize_weights(optimizer);
+                    }
+                    error=model.get_test_error(&test_dt);
+                    this->results.emplace_back(Solution(train_dt.get_id(),wit,x,error,1.0-error));
+                }
+                delete dataset;
+            }
+        }
+
+        void save()
         {
             fstream fp;
-            fp.open(this->results_path,ios::app);
-            if(!fp.is_open())
+            fp.open(this->arena_file,ios::app);
+            if(fp.is_open())
             {
-                cerr<<"File:"<<this->results_path<<endl;
+                cerr<<"Error in file:"<<this->arena_file<<endl;
                 return;
             }
-            for(auto &sol:solution_pool)
+            for(auto &sol:this->results)
             {
-                fp<<sol.id<<sol.weight_init<<sol.normalization<<sol.accuracy<<endl;
+                fp<<sol.id<<","<<sol.weight_init<<","<<sol.normalization<<","<<sol.test_error<<","<<sol.accuracy<<endl;
             }
             fp.close();
         }
@@ -78,14 +89,13 @@ class PlayGround
 
 int main(int argc,char *argv[])
 {
-    PlayGround pg;
     Config::datasets_db_config();
+    Arena arena;
+
     for(const string &dataset_name:Config::datasets)
     {
-        for(const string &norm:{"min_max","standardization"})
-        {
-            pg.solve(dataset_name,norm);
-        }
+        arena.entrance(dataset_name);
     }
+
     return 0;
 }   

@@ -1,4 +1,4 @@
-Instance,Category
-phising_websites,clf
-spambase.data,clf
-german_statlog,clf
+Instance,Category,Separator
+phising_websites,clf,comma
+spambase.data,clf,comma
+german_statlog,clf,tab

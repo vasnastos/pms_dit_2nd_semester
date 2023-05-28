@@ -1,110 +1,5 @@
 #include "dataset.hpp"
 
-// Config
-
-map <string,Category> Config::datasetsdb=map <string,Category>();
-vector <string> Config::datasets=vector <string>();
-
-void Config::datasets_db_config()
-{
-    fs::path pth;
-    for(const auto &x:{"..","datasets_db.csv"})
-    {
-        pth.append(x);
-    }
-
-    fstream fp;
-    fp.open(pth.string(),std::ios::in);
-
-    if(!fp.is_open())
-    {
-        cerr<<"File did not open properly(datasetsdb)"<<endl;
-        return;
-    }
-
-    string line,word;
-    vector <string> data;
-    bool headers=true;
-    while(getline(fp,line))
-    {
-        if(line=="") continue;
-
-        if(headers)
-        {
-            headers=false;
-            continue;
-        }
-
-        data.clear();
-
-        stringstream ss(line);
-        while(getline(ss,word,','))
-        {
-            data.emplace_back(word);
-        }
-
-        if(data.size()!=2) continue;
-
-        Category cat;
-        if(trim(data[1])=="clf")
-        {
-            cout<<"CLF"<<endl;
-            cat=Category::CLF;
-        }
-        else if(trim(data[1])=="reg")
-        {
-            cout<<"REG"<<endl;
-            cat=Category::REG;
-        }
-
-        Config::datasetsdb[data[0]]=cat;
-    }
-    fp.close();
-
-
-    // // Get datasets from datasets folder
-    pth=fs::path(".");
-    for(const string &x:{"..","datasets"})
-    {
-        pth.append(x);
-    }
-
-    for(const auto &entry:fs::directory_iterator(pth.string()))
-    {
-        Config::datasets.emplace_back(entry.path().string());
-    }
-
-}
-
-string Config::get_path(string filename)
-{
-    fs::path pth;
-    pth.append("..");
-    pth.append("datasets");
-    pth.append(filename);
-    return pth.string();
-}
-
-string Config::get_id(string filename)
-{
-    vector <string> split_data;
-    string word;
-    stringstream ss(filename);
-    while(getline(ss,word,sep))
-    {
-        split_data.emplace_back(word);
-    }
-    
-    string extension=split_data.at(split_data.size()-1).substr(split_data.at(split_data.size()-1).find("."),split_data.at(split_data.size()-1).length());
-    return replaceString(split_data.at(split_data.size()-1),extension,"");
-}
-
-Category Config::get_category(string file_id)
-{
-    return Config::datasetsdb[file_id];
-}
-
-
 Dataset::Dataset():id("") {}
 Dataset::~Dataset() {}
 
@@ -129,17 +24,12 @@ string Dataset::get_id()const
     return this->id;
 }
 
-void Dataset::read(string filename,string separator,bool has_categorical)
+void Dataset::read(string filename,bool has_categorical)
 {
-    if(find(Config::datasets.begin(),Config::datasets.end(),filename)!=Config::datasets.end())
-    {
-        cerr<<filename<<"=>NOT EXIST"<<endl;
-        return;
-    }
-
     this->id=Config::get_id(filename);
+    string seperator=Config::get_separator(this->id);
     this->set_category(Config::get_category(this->id));
-    cout<<"NAMED:"<<this->get_named_category()<<endl;
+
     fstream fp;
     fp.open(filename,ios::in);
     if(!fp.is_open())
@@ -165,14 +55,14 @@ void Dataset::read(string filename,string separator,bool has_categorical)
             data.clear();
             // Split the data
             start_pos=0;
-            seperator_pos=line.find(separator);
+            seperator_pos=line.find(seperator);
 
             while(seperator_pos!=string::npos)
             {
                 substring=line.substr(start_pos,seperator_pos-start_pos);
                 data.emplace_back(substring);
                 start_pos=seperator_pos+substring.length();
-                seperator_pos=line.find(separator,start_pos);
+                seperator_pos=line.find(seperator,start_pos);
             }
 
             data.emplace_back(line.substr(start_pos));
@@ -207,14 +97,14 @@ void Dataset::read(string filename,string separator,bool has_categorical)
             data.clear();
             // Split the data
             start_pos=0;
-            seperator_pos=line.find(separator);
+            seperator_pos=line.find(seperator);
 
             while(seperator_pos!=string::npos)
             {
                 substring=line.substr(start_pos,seperator_pos-start_pos);
                 data.emplace_back(substring);
                 start_pos=seperator_pos+1;
-                seperator_pos=line.find(separator,start_pos);
+                seperator_pos=line.find(seperator,start_pos);
             }
 
             data.emplace_back(line.substr(start_pos));
@@ -231,6 +121,7 @@ void Dataset::read(string filename,string separator,bool has_categorical)
     fp.close();
     this->make_patterns();
 }
+
 
 int Dataset::dimension()const
 {
@@ -439,7 +330,7 @@ double Dataset::get_class(double &value)
             }
         }
     }
-    return -1.0;
+    return -20.0;
 }
 
 double Dataset::get_class(int &pos)
@@ -547,19 +438,11 @@ pair <Dataset,Dataset> Dataset::stratify_train_test_split(double test_size)
     
     train_dt.set_data(train_xpoint_set,train_ypoint_set);
     test_dt.set_data(test_xpoint_set,test_ypoint_set);
+
+    train_dt.make_patterns();
+    test_dt.make_patterns();
     return pair <Dataset,Dataset>(train_dt,test_dt);
 }
-
-
-void Dataset::statistics()
-{
-
-}
-void Dataset::save(string filename)
-{
-
-}
-
 
 ostream &operator<<(ostream &os,Dataset &dataset)
 {
@@ -570,9 +453,20 @@ ostream &operator<<(ostream &os,Dataset &dataset)
     os<<"=== Standard Deviation ==="<<endl;
     for(int dpos=0;dpos<dataset.dimension();dpos++)
     {
-        cout<<"Std["<<dpos<<"]:"<<dataset.stdx(dpos)<<endl;
+        os<<"Std["<<dpos<<"]:"<<dataset.stdx(dpos)<<endl;
     }
     return os<<endl<<endl;
 }
 
+
+
+
+void Dataset::statistics()
+{
+
+}
+void Dataset::save(string filename)
+{
+
+}
 

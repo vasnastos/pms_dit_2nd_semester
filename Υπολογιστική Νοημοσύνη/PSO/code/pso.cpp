@@ -29,21 +29,20 @@ bool PSO::terminated()
 {
     double miny,maxy;
     this->particle.get_best_worst_values(miny,maxy);
-    return this->iter>this->max_iters || fabs(maxy-miny)<1e-4;
+    return this->iter>this->max_iters || fabs(maxy-miny)<=1e-4;
 }
 
 void PSO::step()
 {
     this->iter++;
     Data x,velocity_x,bx;
-    double y,velocity_y,by;
+    double y,velocity_y,by,mean_y=0.0;
     double r1,r2,r3;
     int problem_dimension=this->problem->get_dimension();
     uniform_real_distribution <double> rand_real_eng(0,1);
 
     // Data geometric_center_points;
     this->inertia=this->inertia_max-(this->inertia_max-this->inertia_min)*this->iter/this->max_iters;
-
     velocity_y=0;
     for(int i=0;i<this->particle_count;i++)
     {   
@@ -64,7 +63,7 @@ void PSO::step()
             r2=rand_real_eng(eng);
             r3=rand_real_eng(eng);
 
-            velocity_x[j]=this->inertia*velocity_x[j]+this->c1*r1*(x[j]-bx[j])+this->c2*r2*(x[j]-this->best_x[j]);
+            velocity_x[j]=this->inertia*velocity_x[j]+this->c1*r1*(bx[j]-x[j])+this->c2*r2*(this->best_x[j]-x[j]);
             // velocity_x[j]=this->inertia*velocity_x[j]+this->c1*r1*(x[j]-bx[j])+this->c2*r2*(x[j]-bx[j])+r3*c3*geometric_center_points[j];  //upscaled with c3 factor
         }
         this->velocity.replace_point(i,velocity_x,velocity_y);
@@ -94,7 +93,7 @@ void PSO::step()
             this->best_y=y;
         }
     }
-    std::cout<<"ITER:"<<this->iter<<"\tObjective:"<<this->best_y<<endl;
+    std::cout<<"ITER:"<<this->iter<<"\tError(Objective):"<<this->best_y<<"%"<<endl;
     this->y_distribution.emplace_back(this->best_y);
 }
 
@@ -111,11 +110,11 @@ void PSO::solve()
     {
         x=this->problem->get_sample();
         y=this->problem->minimize_function(x);
-        for(int i=0;i<x.size();i++)
-        {
-            cout<<"x["<<i<<"]:"<<x[i]<<endl;
-        }
-        cout<<"Weights:"<<x.size()<<"  Y:"<<y<<endl;
+        // for(int i=0;i<x.size();i++)
+        // {
+        //     cout<<"x["<<i<<"]:"<<x[i]<<endl;
+        // }
+        // cout<<"Weights:"<<x.size()<<"  Y:"<<y<<endl;
         this->particle.add_point(x,y);
         this->best_particle.add_point(x,y);
         if(i==0 || y<this->best_y)
@@ -138,7 +137,7 @@ void PSO::solve()
         this->step();
     } while (!this->terminated());
     cout<<endl<<endl;
-}
+} 
 
 
 

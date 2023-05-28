@@ -1,5 +1,6 @@
 #include "dataset.hpp"
 #include "pso.hpp"
+#include "adam.hpp"
 
 
 class MlpProblem:public Problem
@@ -38,5 +39,7 @@ class MlpProblem:public Problem
         double get_train_error();
         double get_test_error(Dataset *test_dt);
 
-        void pso_training();
+        vector <pair <double,double>> predict(Dataset *test_dt);
+
+        void optimize_weights(string optimizer="Adam");
 };
