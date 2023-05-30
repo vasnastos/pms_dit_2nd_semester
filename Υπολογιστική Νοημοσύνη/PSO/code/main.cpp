@@ -50,13 +50,14 @@ class Arena
             {
                 dataset=new Dataset;
                 dataset->read(filename);
-                dataset->normalization(x);
+                dataset->normalization(x);  
                 pair <Dataset,Dataset> split_data=dataset->stratify_train_test_split(0.5);
                 train_dt=split_data.first;
                 test_dt=split_data.second;
+
                 for(const string &wit:{"Random","Xavier","UXavier"})
                 {
-                    MlpProblem model(dataset,10,wit);
+                    MlpProblem model(&train_dt,10,wit);
                     for(const string &optimizer:{"Adam","PSO"})
                     {
                         cout<<"Id:"<<experiment_id<<"  Dimension:"<<model.get_dimension()<<"  Normalization:"<<x<<"  WeightInit:"<<wit<<"  TrainMethod:"<<optimizer<<endl;

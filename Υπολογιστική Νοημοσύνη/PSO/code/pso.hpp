@@ -2,8 +2,8 @@
 #include "problem.hpp"
 #include "collection.hpp"
 #include <fstream>
-#ifdef linux
-    #include <limits.h>
+#ifdef __linux__
+#include <climits>
 #endif
 
 

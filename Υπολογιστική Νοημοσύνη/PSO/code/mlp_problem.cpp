@@ -5,10 +5,7 @@ MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):
     {
         this->weights[i].resize(d->dimension()+2);
     }
-    this->left_margin.resize(this->dimension);
-    this->right_margin.resize(this->dimension);
     double lower_bound,upper_bound;
-
 
     if(weight_initialization_technique=="Default")
     {
@@ -39,13 +36,7 @@ MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):
         upper_bound=random_upper_bound(this->eng);
     }
 
-
-    // set left and right margin to [-10,10]
-    for(int i=0;i<this->dimension;i++)
-    {
-        this->left_margin[i]=lower_bound;
-        this->right_margin[i]=upper_bound;
-    }
+    this->set_margins(lower_bound,upper_bound);
 
 }
 
@@ -80,12 +71,6 @@ void MlpProblem::set_nodes(int units)
 }
 
 
-void MlpProblem::flush()
-{
-    delete this->data;
-}
-
-
 // Getters
 map <int,Data> MlpProblem::get_weights()const {return this->weights;}
  
@@ -99,15 +84,6 @@ double MlpProblem::minimize_function(Data &w)
 {
     this->set_weights(w);
     return this->get_train_error();
-    
-    // if(this->data->get_category()==Category::CLF)
-    // {
-    //     return this->categorical_crossentropy();
-    // }
-    // else if(this->data->get_category()==Category::REG)
-    // {
-    //     return this->mse();
-    // }
 }
 
 Data MlpProblem::gradient(Data &x)

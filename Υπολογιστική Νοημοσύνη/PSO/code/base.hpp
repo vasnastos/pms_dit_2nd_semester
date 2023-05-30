@@ -11,9 +11,10 @@ using namespace std;
 namespace fs=std::filesystem;
 
 #ifdef _WIN32
-    const char sep='\\';
-#elif linux
-    const char sep='/';
+#define sep='\\';
+#elif __linux__
+#include <climits>
+#define sep '/'
 #endif
 
 
@@ -26,7 +27,7 @@ enum class Category
 struct Instance
 {
     Category category;
-    string separator;
+    string seperator;
     Instance(Category &c,string sp);
     Instance();
 };

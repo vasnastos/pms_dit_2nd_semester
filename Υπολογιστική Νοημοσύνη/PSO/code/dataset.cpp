@@ -64,7 +64,6 @@ void Dataset::read(string filename,bool has_categorical)
                 start_pos=seperator_pos+substring.length();
                 seperator_pos=line.find(seperator,start_pos);
             }
-
             data.emplace_back(line.substr(start_pos));
             
             Data row;
@@ -95,7 +94,6 @@ void Dataset::read(string filename,bool has_categorical)
             if(line=="") continue;
             if(trim(line)[0]=='@') continue;
             data.clear();
-            // Split the data
             start_pos=0;
             seperator_pos=line.find(seperator);
 
@@ -108,7 +106,7 @@ void Dataset::read(string filename,bool has_categorical)
             }
 
             data.emplace_back(line.substr(start_pos));
-            
+
             Data row;
             for(int i=0,t=data.size()-1;i<t;i++)
             {
@@ -367,7 +365,7 @@ pair <Dataset,Dataset> Dataset::stratify_train_test_split(double test_size)
         train_sizes[pattern]=count*(1.0-test_size);
     }
 
-    mt19937 eng(high_resolution_clock::now().time_since_epoch().count());
+    mt19937 eng(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     uniform_int_distribution <int> rand_int(0,this->count()-1);
     vector <int> test_indeces;
     vector <int> train_indeces;

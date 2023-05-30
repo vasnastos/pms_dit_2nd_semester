@@ -41,7 +41,6 @@ class MlpProblem:public Problem
         double get_train_error();
         double get_test_error(Dataset *test_dt);
         string description();
-        void flush();
 
         vector <pair <double,double>> predict(Dataset *test_dt);
 };

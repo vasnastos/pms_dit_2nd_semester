@@ -1,6 +1,6 @@
 #include "base.hpp"
 
-Instance::Instance(Category &c,string sp):category(c),separator(sp) {}
+Instance::Instance(Category &c,string sp):category(c),seperator(sp) {}
 
 Instance::Instance() {}
 
@@ -65,10 +65,9 @@ void Config::datasets_db_config()
         }   
         else if(trim(data[2])=="comma")
         {
-            dataset_separator==",";
+            dataset_separator=",";
         }
-        cout<<data[1]<<"\t"<<data[2]<<endl;
-        Config::datasetsdb[data[0]]=Instance(cat,dataset_separator);
+        Config::datasetsdb[trim(data[0])]=Instance(cat,dataset_separator);
     }
     fp.close();
 
@@ -83,6 +82,11 @@ void Config::datasets_db_config()
     for(const auto &entry:fs::directory_iterator(pth.string()))
     {
         Config::datasets.emplace_back(entry.path().string());
+    }
+
+    for(auto &[ds_name,ins]:Config::datasetsdb)
+    {
+        cout<<ds_name<<"=>("<<ins.seperator<<")"<<endl;
     }
 
 }
@@ -108,5 +112,5 @@ Category Config::get_category(string file_id)
 
 string Config::get_separator(string file_id)
 {
-    return Config::datasetsdb[file_id].separator;
+    return Config::datasetsdb[file_id].seperator;
 }
