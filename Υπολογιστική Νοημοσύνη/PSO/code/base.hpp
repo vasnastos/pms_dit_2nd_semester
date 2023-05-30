@@ -28,6 +28,7 @@ struct Instance
     Category category;
     string separator;
     Instance(Category &c,string sp);
+    Instance();
 };
 
 class Config

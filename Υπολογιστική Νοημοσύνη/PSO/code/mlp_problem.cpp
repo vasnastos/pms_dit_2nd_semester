@@ -49,55 +49,8 @@ MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):
 
 }
 
-MlpProblem::MlpProblem():nodes(0) {}
-
 MlpProblem::~MlpProblem() {}
 
-// Setters
-void MlpProblem::load(string filepath,int nodes,string wit)
-{
-    this->data=new Dataset;
-    this->data->read(filepath,",");
-    this->set_nodes(nodes);
-    this->set_dimension((this->data->dimension()+2)*nodes);
-    double lower_bound,upper_bound;
-
-    if(wit=="Default")
-    {
-        lower_bound=-10;
-        upper_bound=10;
-    }
-    else if(wit=="Random")
-    {
-        lower_bound=-0.01;
-        upper_bound=0.01;
-    }
-    else if(wit=="Xavier")
-    {
-        lower_bound=-1/sqrt(this->data->dimension());
-        upper_bound=1/sqrt(this->data->dimension());
-    }
-    else if(wit=="UXavier")
-    {
-        lower_bound=-6/sqrt(this->data->dimension()+this->nodes);
-        upper_bound=6/sqrt(this->data->dimension()+this->nodes);
-    }
-    else
-    {
-        uniform_real_distribution <double> lower_bound_eng(-10,-5);
-        uniform_real_distribution <double> upper_bound_eng(5,10);
-        lower_bound=lower_bound_eng(this->eng);
-        upper_bound=upper_bound_eng(this->eng);
-    }
-
-
-    // set left and right margin to [-10,10]
-    for(int i=0;i<this->dimension;i++)
-    {
-        this->left_margin[i]=lower_bound;
-        this->right_margin[i]=upper_bound;
-    }
-}
 
 void MlpProblem::set_weights(map <int,Data> &w) {this->weights=w;}
 

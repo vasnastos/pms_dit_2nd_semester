@@ -15,9 +15,18 @@ class APSO
         Data best_x;
         double best_y;
 
+        double inertia_max;
+        double inertia_min;
+        double inertia;
+        double constrictor_factor;
+        double ff;
+
+        double c1,c2,c3;
 
         void step();
-        void terminated();
+        bool terminated();
+
+        mt19937 eng;
 
     public:
         APSO(Problem *p,int num_particles,int max_iters);

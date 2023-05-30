@@ -2,6 +2,8 @@
 
 Instance::Instance(Category &c,string sp):category(c),separator(sp) {}
 
+Instance::Instance() {}
+
 map <string,Instance> Config::datasetsdb=map <string,Instance>();
 vector <string> Config::datasets=vector <string>();
 
@@ -28,6 +30,7 @@ void Config::datasets_db_config()
     string dataset_separator;
     while(getline(fp,line))
     {
+    
         if(line=="") continue;
 
         if(headers)
@@ -37,14 +40,13 @@ void Config::datasets_db_config()
         }
 
         data.clear();
-
         stringstream ss(line);
         while(getline(ss,word,','))
         {
             data.emplace_back(word);
         }
 
-        if(data.size()!=2) continue;
+        if(data.size()!=3) continue;
 
         Category cat;
         if(trim(data[1])=="clf")
@@ -65,7 +67,7 @@ void Config::datasets_db_config()
         {
             dataset_separator==",";
         }
-
+        cout<<data[1]<<"\t"<<data[2]<<endl;
         Config::datasetsdb[data[0]]=Instance(cat,dataset_separator);
     }
     fp.close();
