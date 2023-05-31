@@ -41,9 +41,10 @@ void Adam::solve()
             this->xpoint[i]=this->xpoint[i] - this->alpha * this->mhat[i]/(sqrt(this->uhat[i])+this->learning_rate);
             // this->xpoint[i]=this->xpoint[i] - this->alpha * this->m[i]/sqrt(this->v[i]+this->learning_rate)
         }
-        this->alpha=this->alpha * sqrt(1-pow(this->beta2,iter_id+1))/(1-pow(this->beta1,iter_id+1));
+        // this->alpha=this->alpha * sqrt(1-pow(this->beta2,iter_id+1))/(1-pow(this->beta1,iter_id+1));
         iter_id++;
         this->objective_value=this->problem->minimize_function(this->xpoint);
+        this->y_distribution.emplace_back(this->objective_value);
         cout.precision(4);
         gradient_mean_square_error=this->problem->grms(this->xpoint);
         cout<<"ADAM. Iter:"<<iter_id<<"\tValue:"<<this->objective_value<<"\tGrms:"<<gradient_mean_square_error<<endl;
@@ -64,3 +65,21 @@ void Adam::set_learning_rate(double new_epsilon) {this->learning_rate=new_epsilo
 double Adam::get_learning_rate()const {return this->learning_rate;}
 Data Adam::get_best_x()const {return this->xpoint;}
 
+void Adam::save(string filename)
+{
+    fstream fp;
+
+    fs::path result_path;
+    for(const string &x:{"..","results","train_error"})
+    {
+        result_path.append(x);
+    }
+    result_path.append(filename);
+
+    fp.open(result_path.string(),ios::out);
+    for(const auto &y_value:this->y_distribution)
+    {
+        fp<<y_value<<endl;
+    }
+    fp.close();
+}

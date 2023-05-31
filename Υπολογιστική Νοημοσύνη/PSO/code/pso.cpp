@@ -139,10 +139,7 @@ void PSO::solve()
     cout<<endl<<endl;
 } 
 
-
-
 // Setters Getters and other functions
-
 Data PSO::geometric_center()
 {
     Data geometric_center_points;

@@ -12,7 +12,12 @@ class MlpProblem:public Problem
         map <int,Data> weights;
         string weight_init;
         mt19937 eng;
+
+        // used for saved paths
+
     public:
+        string saved_path_component;
+        
         MlpProblem(Dataset *d,int n,string weight_initialization_technique);
         ~MlpProblem();
 

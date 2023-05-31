@@ -13,6 +13,9 @@ class Adam
         double learning_rate;
         Data xpoint;
         double objective_value;
+
+        Data y_distribution;
+
     public:
         Adam(Problem *instance);
         ~Adam();
@@ -28,4 +31,7 @@ class Adam
         void set_learning_rate(double new_epsilon);
         double get_learning_rate()const;
         Data get_best_x()const;
+
+        void save(string filename);
+
 };

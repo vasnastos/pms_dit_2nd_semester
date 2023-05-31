@@ -1,4 +1,5 @@
-Instance,Category,Separator
-phising_websites,clf,comma
-spambase.data,clf,comma
-german_statlog,clf,tab
+Instance,Category,Separator,Categorical
+phising_websites,clf,comma,no
+spambase.data,clf,comma,no
+german_statlog,clf,tab,no
+ionosphere,clf,comma,yes

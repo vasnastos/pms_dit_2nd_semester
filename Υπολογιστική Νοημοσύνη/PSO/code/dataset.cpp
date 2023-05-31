@@ -24,10 +24,11 @@ string Dataset::get_id()const
     return this->id;
 }
 
-void Dataset::read(string filename,bool has_categorical)
+void Dataset::read(string filename)
 {
     this->id=Config::get_id(filename);
     string seperator=Config::get_separator(this->id);
+    bool has_categorical=Config::categorical_label(this->id);
     this->set_category(Config::get_category(this->id));
 
     fstream fp;
@@ -51,8 +52,9 @@ void Dataset::read(string filename,bool has_categorical)
         {
             if(line=="") continue;
 
-            if(startswith(line,"@")) continue;
+            if(trim(line)[0]=='@') continue;
             data.clear();
+
             // Split the data
             start_pos=0;
             seperator_pos=line.find(seperator);
@@ -61,7 +63,7 @@ void Dataset::read(string filename,bool has_categorical)
             {
                 substring=line.substr(start_pos,seperator_pos-start_pos);
                 data.emplace_back(substring);
-                start_pos=seperator_pos+substring.length();
+                start_pos=seperator_pos+1;
                 seperator_pos=line.find(seperator,start_pos);
             }
             data.emplace_back(line.substr(start_pos));
@@ -75,13 +77,12 @@ void Dataset::read(string filename,bool has_categorical)
             labels.emplace_back(data.at(data.size()-1));
             distinct_labels.insert(data.at(data.size()-1));
         }
-
         for(const auto &label:labels)
         {
             index=0;
-            for(auto itr=distinct_labels.begin();itr!=distinct_labels.end();itr++)
+            for(auto &label_val:distinct_labels)
             {
-                if(label==*itr) break;
+                if(label==label_val) break;
                 index++;
             }
             this->ypoint.emplace_back(static_cast<double>(index));
@@ -307,7 +308,7 @@ string Dataset::get_named_category()const
             return "Classification";
             break;
         case Category::REG:
-            return "Regressinon";
+            return "Regression";
             break;
         default:
             return "No-Category";
@@ -318,17 +319,24 @@ string Dataset::get_named_category()const
 
 double Dataset::get_class(double &value)
 {
+    int imin=-1;
+    double dmin=1e+100;
+    double diff;
     if(this->category==Category::CLF)
     {
-        for(auto &pattern:this->patterns)
+        for(int i=0,t=this->patterns.size();i<t;i++)
         {
-            if(fabs(value-pattern)<=1e-4)
+            diff=fabs(value-this->patterns[i]);
+            if(diff<dmin)
             {
-                return pattern;
+                dmin=diff;
+                imin=i;
             }
         }
+
+        return this->patterns.at(imin);
     }
-    return -20.0;
+    return -20;
 }
 
 double Dataset::get_class(int &pos)
@@ -457,7 +465,18 @@ ostream &operator<<(ostream &os,Dataset &dataset)
 }
 
 
-
+void Dataset::print()
+{
+    for(int i=0,rows=this->count();i<rows;i++)
+    {
+        cout<<"R"<<i+1<<":  ";
+        for(int j=0,cols=this->dimension();j<cols;j++)
+        {
+            cout<<this->xpoint[i][j]<<",";
+        }
+        cout<<this->ypoint[i]<<endl;
+    }
+}
 
 void Dataset::statistics()
 {

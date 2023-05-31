@@ -11,10 +11,10 @@ using namespace std;
 namespace fs=std::filesystem;
 
 #ifdef _WIN32
-#define sep='\\';
+const char sep='\\';
 #elif __linux__
 #include <climits>
-#define sep '/'
+const char sep='/';
 #endif
 
 
@@ -28,7 +28,8 @@ struct Instance
 {
     Category category;
     string seperator;
-    Instance(Category &c,string sp);
+    bool has_categorical_label;
+    Instance(Category &c,string sp,bool cat_label);
     Instance();
 };
 
@@ -41,4 +42,5 @@ class Config
         static string get_id(string filename);
         static Category get_category(string file_id);
         static string get_separator(string file_id);
+        static bool categorical_label(string file_id);
 };

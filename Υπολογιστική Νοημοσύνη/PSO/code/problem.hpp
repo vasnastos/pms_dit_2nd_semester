@@ -6,6 +6,7 @@
 #include <map>
 #include <cassert>
 #include <numeric>
+#include <fstream>
 using namespace std;
 using namespace std::chrono;
 namespace fs=std::filesystem;
@@ -27,6 +28,7 @@ class Problem
         void set_dimension(int dim);
         int get_dimension()const;
 
+        bool is_point_in(Data &x);
         double grms(Data &x);
 
         Data get_sample();

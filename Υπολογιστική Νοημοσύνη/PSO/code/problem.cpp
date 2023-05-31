@@ -39,6 +39,18 @@ Data Problem::get_sample()
 }
 
 
+bool Problem::is_point_in(Data &x)
+{
+    for(auto &value:x)
+    {
+        if(value<this->margins.a() || value>this->margins.b())
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 Problem::~Problem() {}
 
 double Problem::grms(Data &x)

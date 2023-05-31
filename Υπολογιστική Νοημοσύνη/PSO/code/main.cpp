@@ -6,9 +6,10 @@ struct Solution
     string id;
     string weight_init;
     string normalization;
+    string optimizer;
     double test_error;
     double accuracy;
-    Solution(string sid,string wit,string norm,double test_error,double acc):id(sid),weight_init(wit),normalization(norm),test_error(test_error),accuracy(acc) {}
+    Solution(string sid,string wit,string norm,string opt_val,double test_error,double acc):id(sid),weight_init(wit),normalization(norm),optimizer(opt_val),test_error(test_error),accuracy(acc) {}
 };
 
 class Arena
@@ -45,12 +46,13 @@ class Arena
             Dataset *dataset,train_dt,test_dt;
             double error;
             int experiment_id=1;
+            stringstream filepath;
 
             for(const string &x:{"min-max","standardization"})
             {
                 dataset=new Dataset;
                 dataset->read(filename);
-                dataset->normalization(x);  
+                dataset->normalization(x);
                 pair <Dataset,Dataset> split_data=dataset->stratify_train_test_split(0.5);
                 train_dt=split_data.first;
                 test_dt=split_data.second;
@@ -58,19 +60,23 @@ class Arena
                 for(const string &wit:{"Random","Xavier","UXavier"})
                 {
                     MlpProblem model(&train_dt,10,wit);
-                    for(const string &optimizer:{"Adam","PSO"})
+                    for(const string &optimizer:{"Adam","PSO","RmsProp"})
                     {
                         cout<<"Id:"<<experiment_id<<"  Dimension:"<<model.get_dimension()<<"  Normalization:"<<x<<"  WeightInit:"<<wit<<"  TrainMethod:"<<optimizer<<endl;
+                        filepath.clear();
+                        filepath<<train_dt.get_id()<<"_"<<x<<"_"<<wit<<"_"<<optimizer<<".wdtrain";
+                        model.saved_path_component=filepath.str();
                         model.optimize_weights(optimizer);
+                        experiment_id++;
+                        error=model.get_test_error(&test_dt);
+                        this->save(Solution(train_dt.get_id(),wit,x,optimizer,error,1.0-error));
                     }
-                    error=model.get_test_error(&test_dt);
-                    this->results.emplace_back(Solution(train_dt.get_id(),wit,x,error,1.0-error));
                 }
                 delete dataset;
             }
         }
 
-        void save()
+        void save(Solution &sol)
         {
             fstream fp;
             fp.open(this->arena_file,ios::app);
@@ -79,11 +85,10 @@ class Arena
                 cerr<<"Error in file:"<<this->arena_file<<endl;
                 return;
             }
-            for(auto &sol:this->results)
-            {
-                fp<<sol.id<<","<<sol.weight_init<<","<<sol.normalization<<","<<sol.test_error<<","<<sol.accuracy<<endl;
-            }
+            fp<<sol.id<<","<<sol.weight_init<<","<<sol.normalization<<","<<sol.test_error<<","<<sol.accuracy<<endl;
             fp.close();
+
+            cout<<"SOL SAVED:"<<sol.id<<","<<sol.weight_init<<","<<sol.normalization<<","<<sol.optimizer<<","<<sol.test_error<<","<<sol.accuracy<<endl;
         }
 };
 

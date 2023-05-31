@@ -14,8 +14,8 @@ class Dataset
         Category category;
         vector <Data> xpoint;
         Data ypoint;
-        Data patterns;
     public:
+        Data patterns;
         string id;
         Dataset();
         ~Dataset();
@@ -23,7 +23,7 @@ class Dataset
         void set_id(const string &dataset_id);
         void set_category(const Category &cat);
         void set_data(vector <Data> &xpoint_set,Data &ypoint_set);
-        void read(string filename,bool has_categorical=false);
+        void read(string filename);
 
         string get_id()const;
         Category get_category()const;
@@ -53,7 +53,8 @@ class Dataset
         double get_class(int &pos);
         int no_classes()const;
 
-    
+        void print();
+
         pair <Dataset,Dataset> stratify_train_test_split(double test_size=0.3);
         friend ostream &operator<<(ostream &os,Dataset &dataset);
 };

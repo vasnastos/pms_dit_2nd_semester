@@ -48,6 +48,8 @@ void MlpProblem::set_weights(map <int,Data> &w) {this->weights=w;}
 void MlpProblem::set_weights(Data &w)
 {
     assert(w.size()==this->dimension);
+    this->weights.clear();
+
     for(int i=0;i<this->nodes;i++)
     {
         this->weights[i].resize(this->data->dimension()+2);
@@ -69,7 +71,6 @@ void MlpProblem::set_nodes(int units)
 {
     this->nodes=units;
 }
-
 
 // Getters
 map <int,Data> MlpProblem::get_weights()const {return this->weights;}
@@ -176,6 +177,7 @@ void MlpProblem::optimize_weights(string optimizer)
     {
         Adam optimizer(this);
         optimizer.solve();
+        optimizer.save(this->saved_path_component);
         optimized_weights=optimizer.get_best_x();
     }
     else if(optimizer=="PSO")
@@ -271,7 +273,6 @@ vector <pair <double,double>> MlpProblem::predict(Dataset *test_dt)
     }
     return predictions;
 }
-
 
 double MlpProblem::categorical_crossentropy()
 {

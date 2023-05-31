@@ -1,6 +1,6 @@
 #include "base.hpp"
 
-Instance::Instance(Category &c,string sp):category(c),seperator(sp) {}
+Instance::Instance(Category &c,string sp,bool cat_label):category(c),seperator(sp),has_categorical_label(cat_label) {}
 
 Instance::Instance() {}
 
@@ -27,6 +27,8 @@ void Config::datasets_db_config()
     string line,word;
     vector <string> data;
     bool headers=true;
+    Category cat;
+    bool has_categorical_label;
     string dataset_separator;
     while(getline(fp,line))
     {
@@ -46,9 +48,8 @@ void Config::datasets_db_config()
             data.emplace_back(word);
         }
 
-        if(data.size()!=3) continue;
+        if(data.size()!=4) continue;
 
-        Category cat;
         if(trim(data[1])=="clf")
         {
             cat=Category::CLF;
@@ -67,7 +68,17 @@ void Config::datasets_db_config()
         {
             dataset_separator=",";
         }
-        Config::datasetsdb[trim(data[0])]=Instance(cat,dataset_separator);
+
+        if(trim(data[3])=="no")
+        {
+            has_categorical_label=false;
+        }
+        else 
+        {
+            has_categorical_label=true;
+        }
+
+        Config::datasetsdb[trim(data[0])]=Instance(cat,dataset_separator,has_categorical_label);
     }
     fp.close();
 
@@ -113,4 +124,13 @@ Category Config::get_category(string file_id)
 string Config::get_separator(string file_id)
 {
     return Config::datasetsdb[file_id].seperator;
+}
+
+bool Config::categorical_label(string file_id)
+{
+    if(Config::datasetsdb.find(file_id)!=Config::datasetsdb.end())
+    {
+        return Config::datasetsdb[file_id].has_categorical_label;
+    }
+    return false;
 }
