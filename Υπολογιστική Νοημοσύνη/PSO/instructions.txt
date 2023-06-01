@@ -1,7 +1,7 @@
-Windows
-g++ astring.cpp base.cpp problem.cpp dataset.cpp collection.cpp pso.cpp adam.cpp mlp_problem.cpp main.cpp -std=c++17 -o executor
+--- Windows ---
+g++ astring.cpp base.cpp problem.cpp dataset.cpp collection.cpp pso.cpp adam.cpp rmsprop.cpp mlp_problem.cpp main.cpp -std=c++17 -o executor
 executor 
 
-Linux
-g++ astring.cpp base.cpp problem.cpp dataset.cpp collection.cpp pso.cpp adam.cpp mlp_problem.cpp main.cpp -std=c++17 -lstdc++fs -o executor
+--- Linux ---
+g++ astring.cpp base.cpp problem.cpp dataset.cpp collection.cpp pso.cpp adam.cpp rmsprop.cpp mlp_problem.cpp main.cpp -std=c++17 -lstdc++fs -o executor
 ./executor

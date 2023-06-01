@@ -30,7 +30,7 @@ class Arena
             fstream fp;
             this->arena_file=pth.string();
             fp.open(this->results_path,ios::out);
-            fp<<"Dataset,Weight Init,Normalization,Test Error,Accuracy"<<endl;
+            fp<<"Dataset,Weight Init,Normalization,Optimizer,Test Error,Accuracy"<<endl;
             fp.close();
 
             pth=fs::path();
@@ -85,7 +85,7 @@ class Arena
                 cerr<<"Error in file:"<<this->arena_file<<endl;
                 return;
             }
-            fp<<sol.id<<","<<sol.weight_init<<","<<sol.normalization<<","<<sol.test_error<<","<<sol.accuracy<<endl;
+            fp<<sol.id<<","<<sol.weight_init<<","<<sol.normalization<<","<<sol.optimizer<<","<<sol.test_error<<","<<sol.accuracy<<endl;
             fp.close();
 
             cout<<"SOL SAVED:"<<sol.id<<","<<sol.weight_init<<","<<sol.normalization<<","<<sol.optimizer<<","<<sol.test_error<<","<<sol.accuracy<<endl;
@@ -101,7 +101,7 @@ class Arena
 
             string command="python plots.py "+plot_path.string();
             std::system(command.c_str());
-            
+
             cout<<"Results plotted at "<<plot_path.string()<<endl;
         }
 };
