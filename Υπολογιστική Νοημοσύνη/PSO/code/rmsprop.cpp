@@ -21,7 +21,7 @@ void RMSPROP::solve() {
         for(size_t i=0,size=this->problem->get_dimension();i<size;i++)
         {
             this->squared_gradients[i]=rho * this->squared_gradients[i] + (1.0 - this->rho) * pow(this->squared_gradients[i],2);
-            this->learning_rate[i]=iter_id/(this->epsilon+std::sqrtf(this->squared_gradients[i]));
+            this->learning_rate[i]=iter_id/(this->epsilon+std::sqrt(this->squared_gradients[i]));
             this->xpoint[i]=this->xpoint[i] - this->learning_rate[i] *  gradient_points[i]; 
         }
         iter_id++;

@@ -76,7 +76,7 @@ class Arena
             }
         }
 
-        void save(Solution &sol)
+        void save(const Solution &sol)
         {
             fstream fp;
             fp.open(this->arena_file,ios::app);
