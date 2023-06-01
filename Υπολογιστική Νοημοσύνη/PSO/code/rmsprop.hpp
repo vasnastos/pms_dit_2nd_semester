@@ -7,8 +7,9 @@ class RMSPROP
         Problem *problem;
         Data xpoint;
         double objective_value;
-        double decay_rate;//rho
-        double learning_rate;
+        double rho;//decay rate
+        Data learning_rate;
+        double epsilon;
         Data squared_gradients;
 
         Data y_distribution;

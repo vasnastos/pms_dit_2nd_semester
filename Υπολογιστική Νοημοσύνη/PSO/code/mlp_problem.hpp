@@ -1,6 +1,7 @@
 #include "dataset.hpp"
 #include "adam.hpp"
 #include "pso.hpp"
+#include "rmsprop.hpp"
 
 
 
@@ -17,7 +18,7 @@ class MlpProblem:public Problem
 
     public:
         string saved_path_component;
-        
+
         MlpProblem(Dataset *d,int n,string weight_initialization_technique);
         ~MlpProblem();
 

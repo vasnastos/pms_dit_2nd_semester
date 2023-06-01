@@ -90,6 +90,20 @@ class Arena
 
             cout<<"SOL SAVED:"<<sol.id<<","<<sol.weight_init<<","<<sol.normalization<<","<<sol.optimizer<<","<<sol.test_error<<","<<sol.accuracy<<endl;
         }
+
+        void plot()
+        {
+            fs::path plot_path;
+            for(const string &x:{"..","results","plots"})
+            {
+                plot_path.append(x);
+            }
+
+            string command="python plots.py "+plot_path.string();
+            std::system(command.c_str());
+            
+            cout<<"Results plotted at "<<plot_path.string()<<endl;
+        }
 };
 
 

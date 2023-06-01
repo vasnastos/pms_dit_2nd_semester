@@ -175,16 +175,23 @@ void MlpProblem::optimize_weights(string optimizer)
     Data optimized_weights;
     if(optimizer=="Adam")
     {
-        Adam optimizer(this);
-        optimizer.solve();
-        optimizer.save(this->saved_path_component);
-        optimized_weights=optimizer.get_best_x();
+        Adam handler(this);
+        handler.solve();
+        handler.save(this->saved_path_component);
+        optimized_weights=handler.get_best_x();
     }
     else if(optimizer=="PSO")
     {
-        PSO optimizer(this,5000,400);
-        optimizer.solve();
-        optimized_weights=optimizer.get_best_x();
+        PSO handler(this,5000,400);
+        handler.solve();
+        optimized_weights=handler.get_best_x();
+    }
+    else if(optimizer=="RmsProp")
+    {
+        RMSPROP handler(this);
+        handler.solve();
+        handler.save(this->saved_path_component);
+        optimized_weights=handler.get_best_x();
     }
     else 
     {
