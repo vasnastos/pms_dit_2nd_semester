@@ -177,7 +177,7 @@ double Dataset::ymin()
 
 double Dataset::stdx(int pos)
 {
-    if(pos<0 || pos>=this->dimension() || this->xpoint.size()==0)
+    if(pos<0 || pos>=this->dimension() || this->xpoint.empty())
     {
         cerr<<"Position Error:"<<pos<<endl;
         return -1.0;
@@ -333,7 +333,7 @@ double Dataset::get_class(double &value)
                 imin=i;
             }
         }
-
+        
         return this->patterns.at(imin);
     }
     return -20;
@@ -476,6 +476,40 @@ void Dataset::print()
         }
         cout<<this->ypoint[i]<<endl;
     }
+}
+
+void Dataset::clean_noise()
+{
+    vector <int> noisy_dimensions;
+    int d=this->dimension();
+    for(int i=0;i<d;i++)
+    {
+        if(count_if(this->xpoint.begin(),this->xpoint.end(),[&](const Data &x) {return fabs(x.at(i)-0)<=1e-4;})==this->count())
+        {
+            noisy_dimensions.emplace_back(i);
+        }    
+    }
+    
+    if(noisy_dimensions.empty())
+    {
+        return;
+    }
+
+    vector <Data> new_xpoint;
+    Data new_ypoint;
+    for(int i=0,t=this->count();i<t;i++)
+    {
+        Data new_row;
+        for(int j=0,cols=this->dimension();j<cols;j++)
+        {
+            
+        }
+    }
+}
+
+void Dataset::clean_noise()
+{
+
 }
 
 void Dataset::statistics()

@@ -42,6 +42,7 @@ class Dataset
 
         void normalization(string ntype="min_max");
         void make_patterns();
+        void clean_noise();
 
         int dimension()const;
         int count()const;
@@ -54,6 +55,7 @@ class Dataset
         int no_classes()const;
 
         void print();
+        void clean_noise();
 
         pair <Dataset,Dataset> stratify_train_test_split(double test_size=0.3);
         friend ostream &operator<<(ostream &os,Dataset &dataset);
