@@ -29,7 +29,7 @@ class Arena
 
             fstream fp;
             this->arena_file=pth.string();
-            fp.open(this->results_path,ios::out);
+            fp.open(this->arena_file,ios::out);
             fp<<"Dataset,Weight Init,Normalization,Optimizer,Test Error,Accuracy"<<endl;
             fp.close();
 
@@ -43,24 +43,32 @@ class Arena
 
         void entrance(string filename)
         {
+
+            vector <string> normalization_methods={"standardization"};
+            vector <string> weight_init_methods={"Random","Xavier","UXavier"};
+            vector <string> optimizers={"PSO"};
+
+            
             Dataset *dataset,train_dt,test_dt;
             double error;
             int experiment_id=1;
             stringstream filepath;
 
-            for(const string &x:{"min-max","standardization"})
+            for(const string &x:normalization_methods)
             {
                 dataset=new Dataset;
                 dataset->read(filename);
+                dataset->clean_noise();
                 dataset->normalization(x);
+
                 pair <Dataset,Dataset> split_data=dataset->stratify_train_test_split(0.5);
                 train_dt=split_data.first;
                 test_dt=split_data.second;
 
-                for(const string &wit:{"Random","Xavier","UXavier"})
+                for(const string &wit:weight_init_methods)
                 {
                     MlpProblem model(&train_dt,10,wit);
-                    for(const string &optimizer:{"Adam","PSO","RmsProp"})
+                    for(const string &optimizer:optimizers)
                     {
                         cout<<"Id:"<<experiment_id<<"  Dimension:"<<model.get_dimension()<<"  Normalization:"<<x<<"  WeightInit:"<<wit<<"  TrainMethod:"<<optimizer<<endl;
                         filepath.clear();

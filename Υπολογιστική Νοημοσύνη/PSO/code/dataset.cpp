@@ -61,9 +61,19 @@ void Dataset::read(string filename)
 
             while(seperator_pos!=string::npos)
             {
+                if(seperator_pos>line.size())
+                {
+                    break;
+                }
+
                 substring=line.substr(start_pos,seperator_pos-start_pos);
                 data.emplace_back(substring);
                 start_pos=seperator_pos+1;
+                if(line[seperator_pos+1]=='\r')
+                {
+                    start_pos++;
+                }
+
                 seperator_pos=line.find(seperator,start_pos);
             }
             data.emplace_back(line.substr(start_pos));
@@ -100,9 +110,20 @@ void Dataset::read(string filename)
 
             while(seperator_pos!=string::npos)
             {
+                if(seperator_pos>line.size())
+                {
+                    break;
+                }
+
                 substring=line.substr(start_pos,seperator_pos-start_pos);
                 data.emplace_back(substring);
                 start_pos=seperator_pos+1;
+
+                if(line[seperator_pos+1]=='\r')
+                {
+                    start_pos++;
+                }
+
                 seperator_pos=line.find(seperator,start_pos);
             }
 
@@ -496,20 +517,22 @@ void Dataset::clean_noise()
     }
 
     vector <Data> new_xpoint;
-    Data new_ypoint;
     for(int i=0,t=this->count();i<t;i++)
     {
         Data new_row;
         for(int j=0,cols=this->dimension();j<cols;j++)
         {
-            
+            if(find(noisy_dimensions.begin(),noisy_dimensions.end(),j)!=noisy_dimensions.end())
+            {
+                continue;
+            }
+            new_row.emplace_back(this->xpoint[i][j]);           
         }
+        new_xpoint.emplace_back(new_row);
     }
-}
 
-void Dataset::clean_noise()
-{
-
+    this->set_data(new_xpoint,this->ypoint);
+    cout<<"Noise removed"<<endl;
 }
 
 void Dataset::statistics()

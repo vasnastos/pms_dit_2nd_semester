@@ -52,3 +52,8 @@ void RMSPROP::save(string filename)
     }
     fp.close();
 }   
+
+Data RMSPROP::get_best_x()const
+{
+    return this->xpoint;
+}

@@ -42,7 +42,6 @@ class Dataset
 
         void normalization(string ntype="min_max");
         void make_patterns();
-        void clean_noise();
 
         int dimension()const;
         int count()const;
