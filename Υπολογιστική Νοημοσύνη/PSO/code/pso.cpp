@@ -9,18 +9,22 @@ PSO::PSO(Problem *p,int number_of_iterations,int particle_count):problem(p),max_
     // this->c3=2.0;
 
     // // Constriction factor PSO
-    // this->c1=1.49618;
-    // this->c2=1.49618;
-    // this->c3=1.49618;
+    this->c1=1.49618;
+    this->c2=1.49618;
+    this->c3=1.49618;
     
+    // Clerc's PSO(emphasis on global best position)
+    // this->c1=0.72984;
+    // this->c2=0.72984;
+    // this->c3=0.72984;
+
     //Best Params
     this->best_x=Data();
     this->best_y=static_cast<double>(INT_MAX);
 
-    // Clerc's PSO(emphasis on global best position)
-    this->c1=0.72984;
-    this->c2=0.72984;
-    this->c3=0.72984;
+    // Update scene to geometric
+    uniform_int_distribution <int> update_scene(1,this->max_iters);
+    this->T=update_scene(this->eng);
 }
 
 PSO::~PSO() {}
@@ -35,26 +39,33 @@ bool PSO::terminated()
 void PSO::step()
 {
     this->iter++;
-    Data x,velocity_x,bx;
-    double y,velocity_y,by,mean_y=0.0;
     double r1,r2,r3;
     int problem_dimension=this->problem->get_dimension();
     uniform_real_distribution <double> rand_real_eng(0,1);
+    double y,velocity_y,by;
+    Data geometric_center_d;
 
     // Data geometric_center_points;
     this->inertia=this->inertia_max-(this->inertia_max-this->inertia_min)*this->iter/this->max_iters;
+    // this->inertia=(this->inertia_min-this->inertia_max)*((this->max_iters-this->iter)/this->max_iters)+this->inertia_max;
     velocity_y=0;
+    
+    
     for(int i=0;i<this->particle_count;i++)
     {   
         // Reset used vectors
-        x.clear();
-        velocity_x.clear();
-        bx.clear();
+        Data x,velocity_x,bx;
+        
 
         // Obtain particle i, velocity for particle i and best particle at i position
         this->particle.get_point(i,x,y);
         this->velocity.get_point(i,velocity_x,velocity_y);
         this->best_particle.get_point(i,bx,by);
+
+        if(this->iter%T==0)
+        {
+            geometric_center_d=this->geometric_center();
+        }
 
         // update velocity
         for(int j=0;j<problem_dimension;j++)
@@ -63,8 +74,10 @@ void PSO::step()
             r2=rand_real_eng(eng);
             r3=rand_real_eng(eng);
 
-            velocity_x[j]=this->inertia*velocity_x[j]+this->c1*r1*(bx[j]-x[j])+this->c2*r2*(this->best_x[j]-x[j]);
-            // velocity_x[j]=this->inertia*velocity_x[j]+this->c1*r1*(x[j]-bx[j])+this->c2*r2*(x[j]-bx[j])+r3*c3*geometric_center_points[j];  //upscaled with c3 factor
+            velocity_x[j]=this->inertia*velocity_x[j]+this->c1*r1*(x[j]-bx[j])+this->c2*r2*(x[j]-this->best_x[j]);
+            
+            if(this->iter%T==0)
+            velocity_x[j]+=r3*c3*(x[j]-geometric_center_d[j]);  //upscaled with c3 factor
         }
         this->velocity.replace_point(i,velocity_x,velocity_y);
 
@@ -76,7 +89,6 @@ void PSO::step()
 
         // Check problem margins
         if(!this->problem->is_point_in(x)) continue;
-
 
         y=this->problem->minimize_function(x);
         this->particle.replace_point(i,x,y);
@@ -160,7 +172,7 @@ Data PSO::geometric_center()
 
     for(int j=0,t=this->problem->get_dimension();j<t;j++)
     {
-        geometric_center_points[j]/=this->particle_count;
+        geometric_center_points[j]/=static_cast<double>(this->particle_count);
     }
 
     return geometric_center_points;

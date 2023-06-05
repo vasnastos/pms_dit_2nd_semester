@@ -45,7 +45,6 @@ void Adam::solve()
         iter_id++;
         this->objective_value=this->problem->minimize_function(this->xpoint);
         this->y_distribution.emplace_back(this->objective_value);
-        cout.precision(4);
         gradient_mean_square_error=this->problem->grms(this->xpoint);
         cout<<"ADAM. Iter:"<<iter_id<<"\tValue:"<<this->objective_value<<"\tGrms:"<<gradient_mean_square_error<<endl;
         if(gradient_mean_square_error<1e-3)

@@ -46,7 +46,7 @@ class Arena
 
             vector <string> normalization_methods={"standardization"};
             vector <string> weight_init_methods={"Random","Xavier","UXavier"};
-            vector <string> optimizers={"PSO"};
+            vector <string> optimizers={"Adam","PSO"};
 
             
             Dataset *dataset,train_dt,test_dt;
@@ -119,6 +119,7 @@ int main(int argc,char *argv[])
 {
     Config::datasets_db_config();
     Arena arena;
+    cout.precision(7);
 
     for(const string &dataset_name:Config::datasets)
     {

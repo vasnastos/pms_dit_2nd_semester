@@ -1,1 +1,1 @@
-Dataset,Weight Init,Normalization,Accuracy
+Dataset,Weight Init,Normalization,Optimizer,Test Error,Accuracy

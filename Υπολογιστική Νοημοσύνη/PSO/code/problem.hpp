@@ -18,16 +18,25 @@ class Problem
         int dimension;
         mt19937 eng;
         uniform_real_distribution <double> margins;
+
+        double neural_network_left_margin;
+        double neural_network_right_margin;
+
     public:
         Problem();
         Problem(int d);
         virtual ~Problem();
         
         void set_margins(double &left_margin,double &right_margin);
-        pair <double,double> get_margins()const;
         void set_dimension(int dim);
-        int get_dimension()const;
+        void set_neural_left_margin(double new_left_margin);
+        void set_neural_right_margin(double new_right_margin);
+        double get_neural_left_margin()const;
+        double get_neural_right_margin()const;
 
+
+        int get_dimension()const;
+        pair <double,double> get_margins()const;
         bool is_point_in(Data &x);
         double grms(Data &x);
 

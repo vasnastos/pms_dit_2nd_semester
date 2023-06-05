@@ -25,6 +25,7 @@ class PSO
         Data y_distribution;
         
         int c1,c2,c3;
+        int T;
         mt19937 eng;
 
         bool terminated();

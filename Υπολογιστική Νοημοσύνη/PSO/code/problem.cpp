@@ -5,6 +5,8 @@ Problem::Problem() {}
 
 Problem::Problem(int d):dimension(d) {
     this->eng=mt19937(high_resolution_clock::now().time_since_epoch().count());
+    this->set_neural_left_margin(-10);
+    this->set_neural_right_margin(10);
 }
 
 void Problem::set_dimension(int dim) {
@@ -38,12 +40,30 @@ Data Problem::get_sample()
     return coefficients;
 }
 
+void Problem::set_neural_left_margin(double new_left_margin)
+{
+    this->neural_network_left_margin=new_left_margin;
+}
+
+void Problem::set_neural_right_margin(double new_right_margin)
+{
+    this->neural_network_right_margin=new_right_margin;
+}
+double Problem::get_neural_left_margin()const
+{
+    return this->neural_network_left_margin;
+}
+
+double Problem::get_neural_right_margin()const
+{
+    return this->neural_network_right_margin;
+}
 
 bool Problem::is_point_in(Data &x)
 {
     for(auto &value:x)
     {
-        if(value<this->margins.a() || value>this->margins.b())
+        if(value<this->neural_network_left_margin || value>this->neural_network_right_margin)
         {
             return false;
         }
