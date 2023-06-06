@@ -57,5 +57,6 @@ class Dataset
         void clean_noise();
 
         pair <Dataset,Dataset> stratify_train_test_split(double test_size=0.3);
+        pair <Dataset,Dataset> train_test_split(double test_size=0.3);
         friend ostream &operator<<(ostream &os,Dataset &dataset);
 };

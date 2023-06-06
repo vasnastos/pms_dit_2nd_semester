@@ -31,6 +31,8 @@ void Dataset::read(string filename)
     bool has_categorical=Config::categorical_label(this->id);
     this->set_category(Config::get_category(this->id));
 
+    bool header=(this->id=="Concrete_Data");
+
     fstream fp;
     fp.open(filename,ios::in);
     if(!fp.is_open())
@@ -50,6 +52,11 @@ void Dataset::read(string filename)
         int index=0;
         while(getline(fp,line))
         {
+            if(header)
+            {
+                header=false;
+                continue;
+            }
             if(line=="") continue;
 
             if(trim(line)[0]=='@') continue;
@@ -102,6 +109,12 @@ void Dataset::read(string filename)
     {
         while(getline(fp,line))
         {
+            if(header)
+            {
+                header=false;
+                continue;
+            }
+            cout<<line<<endl;
             if(line=="") continue;
             if(trim(line)[0]=='@') continue;
             data.clear();
@@ -394,6 +407,7 @@ pair <Dataset,Dataset> Dataset::stratify_train_test_split(double test_size)
         train_sizes[pattern]=count*(1.0-test_size);
     }
 
+
     mt19937 eng(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     uniform_int_distribution <int> rand_int(0,this->count()-1);
     vector <int> test_indeces;
@@ -469,6 +483,20 @@ pair <Dataset,Dataset> Dataset::stratify_train_test_split(double test_size)
     train_dt.make_patterns();
     test_dt.make_patterns();
     return pair <Dataset,Dataset>(train_dt,test_dt);
+}
+
+pair <Dataset,Dataset> Dataset::train_test_split(double test_size=0.3)
+{
+    vector <Data> train_xpoint_set;
+    vector <Data> test_xpoint_set;
+    Data train_ypoint_set;
+    Data test_ypoint_set;
+
+    mt19937 eng(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    uniform_int_distribution <int> rand_int(0,this->count()-1);
+    vector <int> test_indeces;
+    vector <int> train_indeces;
+
 }
 
 ostream &operator<<(ostream &os,Dataset &dataset)
