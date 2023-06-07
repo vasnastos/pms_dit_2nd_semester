@@ -512,7 +512,7 @@ pair <Dataset,Dataset> Dataset::train_test_split(double test_size)
             test_idx=rand_int(eng);
             found=(find(test_indeces.begin(),test_indeces.end(),test_idx)!=test_indeces.end());
         }while(found);
-
+        test_indeces.emplace_back(test_idx);
         train_indeces.erase(find(train_indeces.begin(),train_indeces.end(),test_idx));
     }
 
