@@ -46,5 +46,5 @@ class PSO
         Data geometric_center();
         
         void solve();
-        void save_y();
+        void save(string filename);
 };

@@ -43,11 +43,9 @@ class Arena
 
         void entrance(string filename)
         {
-
-            vector <string> normalization_methods={"standardization"};
+            vector <string> normalization_methods={"min-max","standardization"};
             vector <string> weight_init_methods={"Random","Xavier","UXavier"};
             vector <string> optimizers={"Adam","PSO"};
-
             
             Dataset *dataset,train_dt,test_dt;
             double error;
@@ -60,11 +58,18 @@ class Arena
                 dataset->read(filename);
                 dataset->clean_noise();
                 dataset->normalization(x);
+                pair <Dataset,Dataset> split_data;
+                if(dataset->get_category()==Category::CLF)
+                {
+                    split_data=dataset->stratify_train_test_split(0.5);
+                }
+                else if(dataset->get_category()==Category::REG)
+                {
+                    split_data=dataset->train_test_split(0.5);
+                }
 
-                pair <Dataset,Dataset> split_data=dataset->stratify_train_test_split(0.5);
                 train_dt=split_data.first;
                 test_dt=split_data.second;
-
                 for(const string &wit:weight_init_methods)
                 {
                     MlpProblem model(&train_dt,10,wit);

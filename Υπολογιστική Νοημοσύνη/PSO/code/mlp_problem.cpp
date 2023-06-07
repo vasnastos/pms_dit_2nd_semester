@@ -184,6 +184,7 @@ void MlpProblem::optimize_weights(string optimizer)
     {
         PSO handler(this,5000,400);
         handler.solve();
+        handler.save(this->saved_path_component);
         optimized_weights=handler.get_best_x();
     }
     else if(optimizer=="RmsProp")

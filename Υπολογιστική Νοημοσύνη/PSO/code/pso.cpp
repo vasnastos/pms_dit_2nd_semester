@@ -207,19 +207,10 @@ double PSO::get_best_y()
     return this->best_y;
 }
 
-void PSO::save_y()
+void PSO::save(string filename)
 {
-    fs::path pth(".");
-    const string filename=this->problem->description()+"_weightsd.csv";
-    for(const string path_component:{"..","results"})
-    {
-        pth.append(path_component);
-    }
-    pth.append(filename);
-
-
     fstream writer;
-    writer.open(pth.string(),ios::out);
+    writer.open(filename,ios::out);
     for(const auto &word:this->y_distribution)
     {
         writer<<word<<endl;

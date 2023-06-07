@@ -497,6 +497,48 @@ pair <Dataset,Dataset> Dataset::train_test_split(double test_size=0.3)
     vector <int> test_indeces;
     vector <int> train_indeces;
 
+    int test_count=static_cast<int>(this->count()*test_size);
+
+    for(int i=0;i<this->count();i++)
+    {
+        train_indeces.emplace_back(i);
+    }
+
+    bool found;
+    int test_idx;
+    for(int i=0;i<test_count;i++)
+    {
+        do{
+            test_idx=rand_int(eng);
+            found=(find(test_indeces.begin(),test_indeces.end(),test_idx)!=test_indeces.end());
+        }while(found);
+
+        train_indeces.erase(find(train_indeces.begin(),train_indeces.end(),test_idx));
+    }
+
+    for(const int &train_idx:train_indeces)
+    {
+        train_xpoint_set.emplace_back(this->xpoint.at(train_idx));
+        train_ypoint_set.emplace_back(this->ypoint.at(train_idx));
+    }
+
+    for(const int &test_idx:test_indeces)
+    {
+        test_xpoint_set.emplace_back(this->xpoint.at(test_idx));
+        test_ypoint_set.emplace_back(this->ypoint.at(test_idx));
+    }
+
+    Dataset train_dt,test_dt;
+    train_dt.set_category(this->get_category());
+    test_dt.set_category(this->get_category());
+
+    train_dt.set_id(this->id+"_train");
+    test_dt.set_id(this->id+"_test");
+
+    train_dt.set_data(train_xpoint_set,train_ypoint_set);
+    test_dt.set_data(test_xpoint_set,test_ypoint_set);
+
+    return make_pair(train_dt,test_dt);
 }
 
 ostream &operator<<(ostream &os,Dataset &dataset)
