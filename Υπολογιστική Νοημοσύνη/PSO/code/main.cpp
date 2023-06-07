@@ -21,7 +21,7 @@ class Arena
     public:
         Arena() {
             // Create results file
-            fs::path pth;
+            fs::path pth(".");
             for(const string &x:{"..","results","arena.csv"})
             {
                 pth.append(x);
