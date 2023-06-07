@@ -485,7 +485,7 @@ pair <Dataset,Dataset> Dataset::stratify_train_test_split(double test_size)
     return pair <Dataset,Dataset>(train_dt,test_dt);
 }
 
-pair <Dataset,Dataset> Dataset::train_test_split(double test_size=0.3)
+pair <Dataset,Dataset> Dataset::train_test_split(double test_size)
 {
     vector <Data> train_xpoint_set;
     vector <Data> test_xpoint_set;
