@@ -114,7 +114,6 @@ void Dataset::read(string filename)
                 header=false;
                 continue;
             }
-            cout<<line<<endl;
             if(line=="") continue;
             if(trim(line)[0]=='@') continue;
             data.clear();
@@ -538,6 +537,9 @@ pair <Dataset,Dataset> Dataset::train_test_split(double test_size)
     train_dt.set_data(train_xpoint_set,train_ypoint_set);
     test_dt.set_data(test_xpoint_set,test_ypoint_set);
 
+    train_dt.make_patterns();
+    test_dt.make_patterns();
+
     return make_pair(train_dt,test_dt);
 }
 
@@ -607,10 +609,10 @@ void Dataset::clean_noise()
 
 void Dataset::statistics()
 {
-
+    // Find mean median max min std for each dimension
 }
 void Dataset::save(string filename)
 {
-
+    // save the dataset in csv format
 }
 

@@ -42,7 +42,6 @@ MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):
 
 MlpProblem::~MlpProblem() {}
 
-
 void MlpProblem::set_weights(map <int,Data> &w) {this->weights=w;}
 
 void MlpProblem::set_weights(Data &w)
@@ -228,7 +227,7 @@ double MlpProblem::get_train_error()
         {
             xi_point=this->data->get_xpointi(i);
             predicted_value=this->output(xi_point);
-            error+=(predicted_value-this->data->get_ypointi(i));
+            error+=pow(predicted_value-this->data->get_ypointi(i),2);
         }
     }
     return error;
@@ -260,7 +259,7 @@ double MlpProblem::get_test_error(Dataset *test_dt)
             xi_point=test_dt->get_xpointi(i);
             predicted_value=this->output(xi_point);
             actual_value=test_dt->get_ypointi(i);
-            error+=(predicted_value-actual_value);
+            error+=pow(predicted_value-actual_value,2);
         }
     }
     return error;

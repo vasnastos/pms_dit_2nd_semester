@@ -22,6 +22,10 @@ class Problem
         double neural_network_left_margin;
         double neural_network_right_margin;
 
+        int function_calls;
+        Data best_xpoint;
+        double best_ypoint;
+
     public:
         Problem();
         Problem(int d);
@@ -41,6 +45,7 @@ class Problem
         double grms(Data &x);
 
         Data get_sample();
+        void stat_minimize_function(Data &x);
         virtual double minimize_function(Data &x)=0;
         virtual Data gradient(Data &x) = 0;
         virtual string description()=0;

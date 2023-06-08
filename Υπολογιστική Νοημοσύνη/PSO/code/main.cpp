@@ -57,7 +57,6 @@ class Arena
                 dataset=new Dataset;
                 dataset->read(filename);
                 dataset->clean_noise();
-                dataset->normalization(x);
                 pair <Dataset,Dataset> split_data;
                 if(dataset->get_category()==Category::CLF)
                 {
@@ -70,12 +69,18 @@ class Arena
 
                 train_dt=split_data.first;
                 test_dt=split_data.second;
+
+                train_dt.normalization(x);
+                test_dt.normalization(x);
+                
+                train_dt.print();
+
                 for(const string &wit:weight_init_methods)
                 {
                     MlpProblem model(&train_dt,10,wit);
                     for(const string &optimizer:optimizers)
                     {
-                        cout<<"Id:"<<experiment_id<<"  Dimension:"<<model.get_dimension()<<"  Normalization:"<<x<<"  WeightInit:"<<wit<<"  TrainMethod:"<<optimizer<<endl;
+                        cout<<"Id:"<<experiment_id<<" Dataset:"<<dataset->get_id()<<"  Dimension:"<<model.get_dimension()<<"  Normalization:"<<x<<"  WeightInit:"<<wit<<"  TrainMethod:"<<optimizer<<endl;
                         filepath.clear();
                         filepath<<train_dt.get_id()<<"_"<<x<<"_"<<wit<<"_"<<optimizer<<".wdtrain";
                         model.saved_path_component=filepath.str();
@@ -114,7 +119,6 @@ class Arena
 
             string command="python plots.py "+plot_path.string();
             std::system(command.c_str());
-
             cout<<"Results plotted at "<<plot_path.string()<<endl;
         }
 };

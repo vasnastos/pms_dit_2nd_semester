@@ -1,7 +1,8 @@
 #include "problem.hpp"
 
 
-Problem::Problem() {}
+Problem::Problem():best_xpoint(Data()),best_ypoint(1e+100),function_calls(0) {
+}
 
 Problem::Problem(int d):dimension(d) {
     this->eng=mt19937(high_resolution_clock::now().time_since_epoch().count());
@@ -84,3 +85,14 @@ double Problem::grms(Data &x)
     return sqrt(s/x.size());
 }
 
+
+void Problem::stat_minimize_function(Data &x)
+{
+    double objective_value=this->minimize_function(x);
+    if(objective_value<this->best_ypoint)
+    {
+        this->best_xpoint=x;
+        this->best_ypoint=objective_value;
+    }
+    this->function_calls++;
+}
