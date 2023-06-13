@@ -1,5 +1,6 @@
 #include "dataset.hpp"
 
+
 Dataset::Dataset():id("") {}
 Dataset::~Dataset() {}
 
@@ -76,12 +77,14 @@ void Dataset::read(string filename)
                 substring=line.substr(start_pos,seperator_pos-start_pos);
                 data.emplace_back(substring);
                 start_pos=seperator_pos+1;
-                if(line[seperator_pos+1]=='\r')
-                {
-                    start_pos++;
-                }
-
+                #ifdef __linux__
+                    if(line[seperator_pos+1]=='\r')
+                    {
+                        start_pos++;
+                    }
+                #endif
                 seperator_pos=line.find(seperator,start_pos);
+
             }
             data.emplace_back(line.substr(start_pos));
             
@@ -583,6 +586,13 @@ void Dataset::clean_noise()
         }    
     }
     
+    cout<<"Noisy Dimensions found[";
+    for(auto &x:noisy_dimensions)
+    {
+        cout<<x<<" ";
+    }
+    cout<<"]"<<endl;
+
     if(noisy_dimensions.empty())
     {
         return;
@@ -604,15 +614,25 @@ void Dataset::clean_noise()
     }
 
     this->set_data(new_xpoint,this->ypoint);
-    cout<<"Noise removed"<<endl;
 }
 
 void Dataset::statistics()
 {
     // Find mean median max min std for each dimension
 }
-void Dataset::save(string filename)
+void Dataset::save()
 {
     // save the dataset in csv format
+    fstream fp;
+    fp.open(this->id+".csv",ios::out);
+    for(int i=0,rows=this->count();i<rows;i++)
+    {
+        for(int j=0,cols=this->dimension();j<cols;j++)
+        {
+            fp<<this->xpoint[i][j]<<",";
+        }
+        fp<<this->ypoint[i]<<endl;
+    }
+    fp.close();
 }
 

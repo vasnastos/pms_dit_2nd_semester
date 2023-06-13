@@ -47,7 +47,7 @@ class Dataset
         int count()const;
 
         void statistics();
-        void save(string filename);
+        void save();
 
         double get_class(double &value);
         double get_class(int &pos);
@@ -58,5 +58,6 @@ class Dataset
 
         pair <Dataset,Dataset> stratify_train_test_split(double test_size=0.3);
         pair <Dataset,Dataset> train_test_split(double test_size=0.3);
+
         friend ostream &operator<<(ostream &os,Dataset &dataset);
 };

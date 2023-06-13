@@ -7,6 +7,19 @@ Instance::Instance() {}
 map <string,Instance> Config::datasetsdb=map <string,Instance>();
 vector <string> Config::datasets=vector <string>();
 
+string Instance::get_named_category()const {
+    if(this->category==Category::CLF)
+    {
+        return "Classification";
+    }
+    else if(this->category==Category::REG)
+    {
+        return "Regression";
+    }
+    return "NONAME";
+}
+
+
 void Config::datasets_db_config()
 {
     fs::path pth;
@@ -94,12 +107,6 @@ void Config::datasets_db_config()
     {
         Config::datasets.emplace_back(entry.path().string());
     }
-
-    for(auto &[ds_name,ins]:Config::datasetsdb)
-    {
-        cout<<ds_name<<"=>("<<ins.seperator<<")"<<endl;
-    }
-
 }
 
 string Config::get_id(string filename)

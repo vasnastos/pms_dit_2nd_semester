@@ -15,6 +15,8 @@ class Adam
         double objective_value;
 
         Data y_distribution;
+        size_t iter;
+        size_t max_iters; 
 
     public:
         Adam(Problem *instance);
@@ -32,6 +34,7 @@ class Adam
         double get_learning_rate()const;
         Data get_best_x()const;
 
+        bool terminated();
         void save(string filename);
 
 };

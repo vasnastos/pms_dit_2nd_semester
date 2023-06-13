@@ -45,7 +45,7 @@ class Problem
         double grms(Data &x);
 
         Data get_sample();
-        void stat_minimize_function(Data &x);
+        double stat_minimize_function(Data &x);
         virtual double minimize_function(Data &x)=0;
         virtual Data gradient(Data &x) = 0;
         virtual string description()=0;

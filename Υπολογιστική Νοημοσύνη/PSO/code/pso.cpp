@@ -33,6 +33,7 @@ bool PSO::terminated()
 {
     double miny,maxy;
     this->particle.get_best_worst_values(miny,maxy);
+    cout<<"Max Objective Value:"<<maxy<<"\tMin Objective Value:"<<miny<<endl;
     return this->iter>this->max_iters || fabs(maxy-miny)<=1e-4;
 }
 
@@ -122,11 +123,6 @@ void PSO::solve()
     {
         x=this->problem->get_sample();
         y=this->problem->minimize_function(x);
-        // for(int i=0;i<x.size();i++)
-        // {
-        //     cout<<"x["<<i<<"]:"<<x[i]<<endl;
-        // }
-        // cout<<"Weights:"<<x.size()<<"  Y:"<<y<<endl;
         this->particle.add_point(x,y);
         this->best_particle.add_point(x,y);
         if(i==0 || y<this->best_y)

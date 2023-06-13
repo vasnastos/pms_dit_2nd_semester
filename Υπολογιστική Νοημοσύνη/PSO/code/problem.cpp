@@ -86,7 +86,7 @@ double Problem::grms(Data &x)
 }
 
 
-void Problem::stat_minimize_function(Data &x)
+double Problem::stat_minimize_function(Data &x)
 {
     double objective_value=this->minimize_function(x);
     if(objective_value<this->best_ypoint)
@@ -95,4 +95,5 @@ void Problem::stat_minimize_function(Data &x)
         this->best_ypoint=objective_value;
     }
     this->function_calls++;
+    return objective_value;
 }

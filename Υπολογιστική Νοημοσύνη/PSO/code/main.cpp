@@ -72,8 +72,6 @@ class Arena
 
                 train_dt.normalization(x);
                 test_dt.normalization(x);
-                
-                train_dt.print();
 
                 for(const string &wit:weight_init_methods)
                 {
@@ -81,11 +79,11 @@ class Arena
                     for(const string &optimizer:optimizers)
                     {
                         cout<<"Id:"<<experiment_id<<" Dataset:"<<dataset->get_id()<<"  Dimension:"<<model.get_dimension()<<"  Normalization:"<<x<<"  WeightInit:"<<wit<<"  TrainMethod:"<<optimizer<<endl;
+                        experiment_id++;
                         filepath.clear();
                         filepath<<train_dt.get_id()<<"_"<<x<<"_"<<wit<<"_"<<optimizer<<".wdtrain";
                         model.saved_path_component=filepath.str();
                         model.optimize_weights(optimizer);
-                        experiment_id++;
                         error=model.get_test_error(&test_dt);
                         this->save(Solution(train_dt.get_id(),wit,x,optimizer,error,1.0-error));
                     }

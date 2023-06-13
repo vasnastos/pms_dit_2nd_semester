@@ -14,8 +14,6 @@ class MlpProblem:public Problem
         string weight_init;
         mt19937 eng;
 
-        // used for saved paths
-
     public:
         string saved_path_component;
 

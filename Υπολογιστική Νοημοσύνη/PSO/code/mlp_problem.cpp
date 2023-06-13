@@ -1,6 +1,7 @@
 #include "mlp_problem.hpp"
 
 MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):data(d),nodes(n),Problem((d->dimension()+2)*n) {
+    
     for(int i=0;i<n;i++)
     {
         this->weights[i].resize(d->dimension()+2);
@@ -19,13 +20,13 @@ MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):
     }
     else if(weight_initialization_technique=="Xavier")
     {
-        lower_bound=-1/sqrt(d->dimension());
-        upper_bound=1/sqrt(d->dimension());
+        lower_bound=-1.0/sqrt(d->dimension());
+        upper_bound=1.0/sqrt(d->dimension());
     }
     else if(weight_initialization_technique=="UXavier")
     {
-        lower_bound=-6/sqrt(d->dimension()+n);
-        upper_bound=6/sqrt(d->dimension()+n);
+        lower_bound=-6.0/sqrt(d->dimension()+n);
+        upper_bound=6.0/sqrt(d->dimension()+n);
     }
     else
     {
@@ -110,6 +111,7 @@ Data MlpProblem::gradient(Data &x)
     {
         g[j]*=2.0;
     }
+    
     return g;
 }
 

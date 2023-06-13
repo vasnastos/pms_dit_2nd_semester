@@ -31,6 +31,7 @@ struct Instance
     bool has_categorical_label;
     Instance(Category &c,string sp,bool cat_label);
     Instance();
+    string get_named_category()const;
 };
 
 class Config
