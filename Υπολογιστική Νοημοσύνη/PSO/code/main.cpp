@@ -1,6 +1,5 @@
 #include "mlp_problem.hpp"
 
-
 struct Solution
 {
     string id;

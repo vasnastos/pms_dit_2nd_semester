@@ -117,7 +117,7 @@ void PSO::step()
             this->best_y=y;
         }
     }
-    std::cout<<"ITER:"<<this->iter<<"\tError(Objective):"<<this->best_y<<"%\t";
+    std::cout<<"ITER:"<<this->iter<<"\tObjective:"<<this->best_y<<(this->problem->category()==Category::CLF?"%":"")<<"\t";
     this->y_distribution.emplace_back(this->best_y);
 }
 

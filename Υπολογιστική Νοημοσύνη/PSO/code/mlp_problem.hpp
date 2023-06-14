@@ -44,7 +44,7 @@ class MlpProblem:public Problem
         double mse();
         double get_train_error();
         double get_test_error(Dataset *test_dt);
-        string description();
+        Category category();
 
         vector <pair <double,double>> predict(Dataset *test_dt);
 };

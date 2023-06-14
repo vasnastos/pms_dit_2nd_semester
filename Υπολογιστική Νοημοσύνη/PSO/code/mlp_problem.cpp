@@ -80,7 +80,6 @@ int MlpProblem::get_nodes()const
     return this->nodes;
 }
 
-
 double MlpProblem::minimize_function(Data &w)
 {
     this->set_weights(w);
@@ -326,7 +325,7 @@ double MlpProblem::mse()
     return (error*100.0)/static_cast<double>(this->data->count());
 }
 
-string MlpProblem::description()
+Category MlpProblem::category()
 {
-    return this->data->id;
+    return this->data->get_category();
 }

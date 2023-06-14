@@ -7,6 +7,7 @@
 #include <cassert>
 #include <numeric>
 #include <fstream>
+#include "base.hpp"
 using namespace std;
 using namespace std::chrono;
 namespace fs=std::filesystem;
@@ -48,5 +49,5 @@ class Problem
         double stat_minimize_function(Data &x);
         virtual double minimize_function(Data &x)=0;
         virtual Data gradient(Data &x) = 0;
-        virtual string description()=0;
+        virtual Category category()=0;
 };
