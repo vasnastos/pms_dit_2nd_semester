@@ -42,7 +42,7 @@ class Arena
 
         void entrance(string filename)
         {
-            vector <string> normalization_methods={"min-max","standardization"};
+            vector <string> normalization_methods={"min_max","standardization"};
             vector <string> weight_init_methods={"Random","Xavier","UXavier"};
             vector <string> optimizers={"Adam","PSO"};
             
