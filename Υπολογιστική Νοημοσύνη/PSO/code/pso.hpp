@@ -24,8 +24,9 @@ class PSO
         double best_y;
         Data y_distribution;
         
-        int c1,c2,c3;
-        int T;
+        double c1,c2,c3; // Acceleration coefficients
+        double k,midpoint; // Non Linear Decay Rate
+        int T; // geometric center update scene
         mt19937 eng;
 
         bool terminated();

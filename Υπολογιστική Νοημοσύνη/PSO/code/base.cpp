@@ -141,3 +141,18 @@ bool Config::categorical_label(string file_id)
     }
     return false;
 }
+
+vector <string> split(string &input_str,string &seperator)
+{
+    size_t start_pos=0;
+    size_t end_pos=input_str.find(seperator);
+    vector <string> data;
+    while(end_pos!=string::npos)
+    {
+        data.emplace_back(input_str.substr(start_pos,end_pos));
+        start_pos=end_pos+seperator.length();
+        end_pos=input_str.find(seperator,start_pos);
+    }
+    data.emplace_back(input_str.substr(start_pos,end_pos));
+    return data;
+}

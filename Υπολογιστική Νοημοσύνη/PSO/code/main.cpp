@@ -96,7 +96,7 @@ class Arena
         {
             fstream fp;
             fp.open(this->arena_file,ios::app);
-            if(fp.is_open())
+            if(!fp.is_open())
             {
                 cerr<<"Error in file:"<<this->arena_file<<endl;
                 return;
@@ -126,7 +126,7 @@ int main(int argc,char *argv[])
 {
     Config::datasets_db_config();
     Arena arena;
-    cout.precision(7);
+    cout.precision(8);
 
     for(const string &dataset_name:Config::datasets)
     {

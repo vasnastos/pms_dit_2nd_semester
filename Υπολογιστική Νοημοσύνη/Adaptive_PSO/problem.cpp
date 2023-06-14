@@ -5,24 +5,27 @@ Problem::Problem() {}
 
 Problem::Problem(int d):dimension(d) {
     this->eng=mt19937(high_resolution_clock::now().time_since_epoch().count());
-    this->left_margin.resize(d);
-    this->right_margin.resize(d);
 }
 
 void Problem::set_dimension(int dim) {
     this->dimension=dim;
-    this->left_margin.resize(dim);
-    this->right_margin.resize(dim);
+    this->set_neural_left_margin(-10);
+    this->set_neural_right_margin(10);
 }
 
-void Problem::set_left_margin(Data &x)
+void Problem::set_margins(const double &left_margin,const double &right_margin)
 {
-    this->left_margin=x;
+    this->margins.param(std::uniform_real_distribution<double>::param_type(left_margin,right_margin));
 }
 
-void Problem::set_right_margin(Data &x)
+void Problem::set_neural_left_margin(const double &value)
 {
-    this->right_margin=x;
+    this->neural_network_left_margin=value;
+}
+
+void Problem::set_neural_right_margin(const double &value)
+{
+    this->neural_network_right_margin=value;
 }
 
 int Problem::get_dimension()const
@@ -30,15 +33,6 @@ int Problem::get_dimension()const
     return this->dimension;
 }
 
-Data Problem::get_left_margin()const
-{
-    return this->left_margin;
-}
-
-Data Problem::get_right_margin()const
-{
-    return this->right_margin;
-}
 
 Data Problem::get_sample()
 {
@@ -48,16 +42,36 @@ Data Problem::get_sample()
     coefficients.resize(this->dimension);
     for(int i=0;i<this->dimension;i++)
     {
-        coefficients[i]=this->left_margin[i]+(this->right_margin[i]-this->left_margin[i])*rand_real(this->eng);
+        coefficients[i]=this->margins(this->eng);
     }
     return coefficients;
+}
+
+double Problem::get_left_margin()const
+{
+    return this->margins.a();
+}
+
+double Problem::get_right_margin()const
+{
+    return this->margins.b();
+}
+
+double Problem::get_neural_left_margin()const
+{
+    return this->neural_network_left_margin;
+}
+
+double Problem::get_neural_right_margin()const
+{
+    return this->neural_network_right_margin;
 }
 
 bool Problem::is_point_in(Data &x)
 {
     for(int i=0,t=x.size();i<t;i++)
     {
-        if(x[i]<this->left_margin[i] || x[i]>this->right_margin[i])
+        if(x[i]<this->neural_network_left_margin || x[i]>this->neural_network_right_margin)
         {
             return false;
         }
@@ -69,8 +83,6 @@ Problem::~Problem() {}
 
 double Problem::grms(Data &x)
 {
-    cout<<"PR:"<<x.size()<<endl;
-    exit(EXIT_SUCCESS);
     Data gradients=this->gradient(x);
     double s=0.0;
     for(int i=0,t=x.size();i<t;i++)
@@ -78,16 +90,4 @@ double Problem::grms(Data &x)
         s+=pow(gradients[i],2);
     }
     return sqrt(s/x.size());
-}
-
-
-// Some Virtual functions
-void Problem::load(string filepath,int nodes,string wit)
-{
-    cout<<"Load function(filepath,nodes,wit) could be used in an mlp problem"<<endl;
-}
-
-void Problem::flush()
-{
-    cout<<"Function that reallocates memory that can be used in a derived class"<<endl;
 }

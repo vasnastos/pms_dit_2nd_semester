@@ -45,3 +45,5 @@ class Config
         static string get_separator(string file_id);
         static bool categorical_label(string file_id);
 };
+
+vector <string> split(string &input_str,string &seperator);

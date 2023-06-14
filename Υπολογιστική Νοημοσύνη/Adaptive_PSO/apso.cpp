@@ -11,6 +11,10 @@ APSO::APSO(Problem *p,int num_particles,int number_of_max_iters):problem(p),iter
     this->best_y=static_cast<double>(INT_MAX);
 
     this->eng=mt19937(high_resolution_clock::now().time_since_epoch().count());
+
+
+    this->ff=this->c1+this->c2;
+    this->constrictor_factor=2.0/fabs(2-this->ff-sqrt(pow(this->ff,2)-4*this->ff));
 }
 
 APSO::~APSO() {}
@@ -61,13 +65,23 @@ void APSO::step()
             this->best_y=y;
         }
     }
-    cout<<"ITER:"<<this->iter_id<<"\tError(Objective):"<<this->best_y<<"%"<<endl;
+    cout<<"ITER:"<<this->iter_id;
+    cout<<"  X[";
+    for(auto &xpoint:this->best_x)
+    {
+        cout<<xpoint<<" ";
+    }
+    cout<<"]";
+    cout<<"\tObjective:"<<this->best_y;
 }
 
 bool APSO::terminated()
 {
     double miny,maxy;
     this->particles.get_best_worst_values(miny,maxy);
+
+    cout<<"\tMax:"<<maxy<<"\tMin:"<<miny<<endl;
+
     return this->iter_id>this->max_iters || fabs(maxy-miny)<=1e-4;
 }
 

@@ -59,35 +59,31 @@ void Dataset::read(string filename)
                 continue;
             }
             if(line=="") continue;
-
             if(trim(line)[0]=='@') continue;
-            data.clear();
 
-            // Split the data
-            start_pos=0;
-            seperator_pos=line.find(seperator);
+            data=split(line,seperator);
 
-            while(seperator_pos!=string::npos)
-            {
-                if(seperator_pos>line.size())
-                {
-                    break;
-                }
+            // while(seperator_pos!=string::npos)
+            // {
+            //     if(seperator_pos>line.size())
+            //     {
+            //         break;
+            //     }
 
-                substring=line.substr(start_pos,seperator_pos-start_pos);
-                data.emplace_back(substring);
-                start_pos=seperator_pos+1;
-                #ifdef __linux__
-                    if(line[seperator_pos+1]=='\r')
-                    {
-                        start_pos++;
-                    }
-                #endif
-                seperator_pos=line.find(seperator,start_pos);
+            //     substring=line.substr(start_pos,seperator_pos-start_pos);
+            //     data.emplace_back(substring);
+            //     start_pos=seperator_pos+1;
+            //     #ifdef __linux__
+            //         if(line[seperator_pos+1]=='\r')
+            //         {
+            //             start_pos++;
+            //         }
+            //     #endif
+            //     seperator_pos=line.find(start_pos);
 
-            }
-            data.emplace_back(line.substr(start_pos));
-            
+            // }
+            // data.emplace_back(line.substr(start_pos));
+
             Data row;
             for(int i=0,t=data.size()-1;i<t;i++)
             {
@@ -119,30 +115,8 @@ void Dataset::read(string filename)
             }
             if(line=="") continue;
             if(trim(line)[0]=='@') continue;
-            data.clear();
-            start_pos=0;
-            seperator_pos=line.find(seperator);
 
-            while(seperator_pos!=string::npos)
-            {
-                if(seperator_pos>line.size())
-                {
-                    break;
-                }
-
-                substring=line.substr(start_pos,seperator_pos-start_pos);
-                data.emplace_back(substring);
-                start_pos=seperator_pos+1;
-
-                if(line[seperator_pos+1]=='\r')
-                {
-                    start_pos++;
-                }
-
-                seperator_pos=line.find(seperator,start_pos);
-            }
-
-            data.emplace_back(line.substr(start_pos));
+            data=split(line,seperator);
 
             Data row;
             for(int i=0,t=data.size()-1;i<t;i++)
@@ -586,7 +560,7 @@ void Dataset::clean_noise()
         }    
     }
     
-    cout<<"Noisy Dimensions found[";
+    cout<<"Noisy Dimensions[";
     for(auto &x:noisy_dimensions)
     {
         cout<<x<<" ";

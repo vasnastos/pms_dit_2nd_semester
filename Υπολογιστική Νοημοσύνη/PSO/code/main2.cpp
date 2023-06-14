@@ -11,8 +11,9 @@ bool containsNaN(const std::vector<double>& vec) {
 
 int main(int argc,char **argv)
 {
+    cout.precision(8);
     Config::datasets_db_config();
-    string filename="ionosphere.data";
+    string filename="Concrete_Data.csv";
 
     fs::path path_to_file;
     for(auto &x:{"..","datasets"})
@@ -25,6 +26,7 @@ int main(int argc,char **argv)
     Dataset *dataset=new Dataset;
     dataset->read(path_to_file.string());
     dataset->clean_noise();
+    cout<<dataset->no_classes()<<endl;
     pair <Dataset,Dataset> split_data;
     if(dataset->get_category()==Category::CLF)
     {

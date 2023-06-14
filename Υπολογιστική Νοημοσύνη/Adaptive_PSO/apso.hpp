@@ -1,4 +1,8 @@
 #include "collection.hpp"
+#ifdef __linux__
+    #include <climits>
+#endif
+
 
 class APSO
 {

@@ -8,7 +8,6 @@ PSO::PSO(Problem *p,int number_of_iterations,int particle_count):problem(p),max_
     // this->c2=2.0;
     // this->c3=2.0;
 
-    // // Constriction factor PSO
     this->c1=1.49618;
     this->c2=1.49618;
     this->c3=1.49618;
@@ -25,6 +24,12 @@ PSO::PSO(Problem *p,int number_of_iterations,int particle_count):problem(p),max_
     // Update scene to geometric
     uniform_int_distribution <int> update_scene(1,this->max_iters);
     this->T=update_scene(this->eng);
+
+    // Non Linear Decay Rate
+    uniform_int_distribution <int> rand_int(1,5);
+    this->k=rand_int(this->eng);
+    this->midpoint=this->max_iters/2.0;
+
 }
 
 PSO::~PSO() {}
@@ -34,7 +39,7 @@ bool PSO::terminated()
     double miny,maxy;
     this->particle.get_best_worst_values(miny,maxy);
     cout<<"Max Objective Value:"<<maxy<<"\tMin Objective Value:"<<miny<<endl;
-    return this->iter>this->max_iters || fabs(maxy-miny)<=1e-4;
+    return this->iter>this->max_iters || (fabs(maxy-miny)<=1e-4 && this->iter!=1);
 }
 
 void PSO::step()
@@ -47,8 +52,13 @@ void PSO::step()
     Data geometric_center_d;
 
     // Data geometric_center_points;
-    this->inertia=this->inertia_max-(this->inertia_max-this->inertia_min)*this->iter/this->max_iters;
+
+    // --> Linearly Decreasing inertia 
+    // this->inertia=this->inertia_max-(this->inertia_max-this->inertia_min)*this->iter/this->max_iters;
     // this->inertia=(this->inertia_min-this->inertia_max)*((this->max_iters-this->iter)/this->max_iters)+this->inertia_max;
+    
+    //--> Non-Linearly decreasing inertia
+    this->inertia=this->inertia_min+(this->inertia_max-this->inertia_min)/(1+exp(-k*(this->iter-this->midpoint))); 
     velocity_y=0;
     
     
@@ -75,10 +85,10 @@ void PSO::step()
             r2=rand_real_eng(eng);
             r3=rand_real_eng(eng);
 
-            velocity_x[j]=this->inertia*velocity_x[j]+this->c1*r1*(x[j]-bx[j])+this->c2*r2*(x[j]-this->best_x[j]);
+            velocity_x[j]=this->inertia*velocity_x[j]+this->c1*r1*(bx[j]-x[j])+this->c2*r2*(this->best_x[j]-x[j]);
             
             if(this->iter%T==0)
-            velocity_x[j]+=r3*c3*(x[j]-geometric_center_d[j]);  //upscaled with c3 factor
+            velocity_x[j]+=r3*c3*(geometric_center_d[j]-x[j]);  //upscaled with c3 factor
         }
         this->velocity.replace_point(i,velocity_x,velocity_y);
 
@@ -100,13 +110,14 @@ void PSO::step()
         {
             best_particle.replace_point(i,x,y);
         }
+
         if(y<this->best_y)
         {
             this->best_x=x;
             this->best_y=y;
         }
     }
-    std::cout<<"ITER:"<<this->iter<<"\tError(Objective):"<<this->best_y<<"%"<<endl;
+    std::cout<<"ITER:"<<this->iter<<"\tError(Objective):"<<this->best_y<<"%\t";
     this->y_distribution.emplace_back(this->best_y);
 }
 
