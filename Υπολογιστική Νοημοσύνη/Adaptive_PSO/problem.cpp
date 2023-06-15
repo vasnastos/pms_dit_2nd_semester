@@ -36,8 +36,6 @@ int Problem::get_dimension()const
 
 Data Problem::get_sample()
 {
-    uniform_real_distribution <double> rand_real(0,1);
-
     Data coefficients;
     coefficients.resize(this->dimension);
     for(int i=0;i<this->dimension;i++)

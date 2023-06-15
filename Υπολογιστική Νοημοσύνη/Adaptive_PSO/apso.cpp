@@ -47,6 +47,7 @@ void APSO::step()
             r2=rand_real_eng(this->eng);
 
             velocity_x[j]=this->inertia * velocity_x[j] + this->c1 * r1 * (best_positional_x[j]-x[j])+this->c2 * r2 * (this->best_x[j] - x[j]);
+            // velocity_x[j]=this->constrictor_factor *(velocity_x[j] + this->c1 * r1 * (best_positional_x[j]-x[j])+this->c2 * r2 * (this->best_x[j]-x[j]))
         }
         this->velocity.replace_point(i,velocity_x,velocity_y);
 
@@ -121,6 +122,47 @@ void APSO::solve()
     }while(!this->terminated());
     cout<<endl<<endl;
 }
+
+
+// ESE procedure
+double APSO::eucleidian_distance(Data &particle_1,Data &particle_2)
+{
+    double s=0;
+    for(int i=0,t=this->particle_count;i<t;i++)
+    {
+        s+=pow(particle_1.at(i)-particle_2.at(i),2);
+    }
+    return sqrt(s);
+}
+
+double APSO::particle_mean_distance(int particle_idx)
+{
+    double s=0;
+    Data particle_xi,particle_xj;
+    double particle_yi,particle_yj;
+    this->particles.get_point(particle_idx,particle_xi,particle_yi);
+    for(int particle_jdx=0;particle_jdx<this->particle_count;particle_jdx++)
+    {
+        this->particles.get_point(particle_jdx,particle_xj,particle_yj);
+        s+=this->eucleidian_distance(particle_xi,particle_xj);
+    }
+    return s/static_cast<double>(this->particle_count-1);
+}
+
+double APSO::evaluationary_factor()
+{
+    Data particle_mean_distance;
+    particle_mean_distance.resize(this->particle_count);
+}
+
+void APSO::ESE()
+{
+
+}
+
+
+
+
 
 Data APSO::get_best_x()const
 {

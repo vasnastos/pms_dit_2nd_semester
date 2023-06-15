@@ -24,19 +24,23 @@ class APSO
         double inertia;
         double constrictor_factor;
         double ff;
-
         double c1,c2,c3;
+        mt19937 eng;
+
 
         void step();
         bool terminated();
-
-        mt19937 eng;
-
     public:
         APSO(Problem *p,int num_particles,int max_iters);
         ~APSO();
 
         void solve();
+
+        // ESE procedure
+        double eucleidian_distance(Data &particle_1,Data &particle_2);
+        double particle_mean_distance(int particle_idx);
+        double evaluationary_factor();
+        void ESE();
 
         Data get_best_x()const;
         double get_best_y()const;
