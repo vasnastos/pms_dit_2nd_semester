@@ -170,7 +170,7 @@ Data MlpProblem::get_derivative(Data &x)
     return G;
 }
 
-void MlpProblem::optimize_weights(string optimizer)
+void MlpProblem::optimize_weights(string optimizer,bool save_results)
 {
     Data optimized_weights;
     if(optimizer=="Adam")
@@ -179,13 +179,21 @@ void MlpProblem::optimize_weights(string optimizer)
         handler.solve();
         handler.save(this->saved_path_component);
         optimized_weights=handler.get_best_x();
+        if(save_results)
+        {
+            handler.save(this->saved_path_component);
+        }
     }
     else if(optimizer=="PSO")
     {
-        PSO handler(this,5000,400);
+        PSO handler(this,15000,200);
         handler.solve();
         handler.save(this->saved_path_component);
         optimized_weights=handler.get_best_x();
+        if(save_results)
+        {
+            handler.save(this->saved_path_component);
+        }
     }
     else if(optimizer=="RmsProp")
     {
@@ -193,6 +201,10 @@ void MlpProblem::optimize_weights(string optimizer)
         handler.solve();
         handler.save(this->saved_path_component);
         optimized_weights=handler.get_best_x();
+        if(save_results)
+        {
+            handler.save(this->saved_path_component);
+        }
     }
     else 
     {

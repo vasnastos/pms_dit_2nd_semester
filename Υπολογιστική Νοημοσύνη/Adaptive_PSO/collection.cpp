@@ -105,3 +105,19 @@ void Collection::get_best_worst_values(double &besty,double &worsty)
         }
     }
 }
+
+size_t Collection::get_worst_objective_collection_idx()
+{
+    size_t idx=-1;
+    double objective=numeric_limits<double>::infinity();
+
+    for(int pi=0,t=this->xaxis_data.size();pi<t;pi++)
+    {
+        if(this->yaxis_data[pi]<objective)
+        {
+            objective=this->yaxis_data[pi];
+            idx=pi;
+        }
+    }
+    return idx;
+}

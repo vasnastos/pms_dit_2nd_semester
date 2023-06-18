@@ -36,7 +36,7 @@ class MlpProblem:public Problem
         double sigmoid_derivative(double &x);
         double output(Data &x);
         Data get_derivative(Data &x);
-        void optimize_weights(string optimizer);
+        void optimize_weights(string optimizer,bool save_results=false);
 
 
         double categorical_crossentropy();

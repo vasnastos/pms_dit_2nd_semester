@@ -49,7 +49,6 @@ class Arena
             Dataset *dataset,train_dt,test_dt;
             double error;
             int experiment_id=1;
-            stringstream filepath;
 
             for(const string &x:normalization_methods)
             {
@@ -79,7 +78,7 @@ class Arena
                     {
                         cout<<"Id:"<<experiment_id<<" Dataset:"<<dataset->get_id()<<"  Dimension:"<<model.get_dimension()<<"  Normalization:"<<x<<"  WeightInit:"<<wit<<"  TrainMethod:"<<optimizer<<endl;
                         experiment_id++;
-                        filepath.clear();
+                        stringstream filepath;
                         filepath<<train_dt.get_id()<<"_"<<x<<"_"<<wit<<"_"<<optimizer<<".wdtrain";
                         model.saved_path_component=filepath.str();
                         model.optimize_weights(optimizer);
@@ -103,7 +102,7 @@ class Arena
             fp<<sol.id<<","<<sol.weight_init<<","<<sol.normalization<<","<<sol.optimizer<<","<<sol.test_error<<","<<sol.accuracy<<endl;
             fp.close();
 
-            cout<<"SOL SAVED:"<<sol.id<<","<<sol.weight_init<<","<<sol.normalization<<","<<sol.optimizer<<","<<sol.test_error<<","<<sol.accuracy<<endl;
+            // cout<<"SOL SAVED:"<<sol.id<<","<<sol.weight_init<<","<<sol.normalization<<","<<sol.optimizer<<","<<sol.test_error<<","<<sol.accuracy<<endl;
         }
 
         void plot()

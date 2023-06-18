@@ -3,5 +3,5 @@ g++ problem.cpp collection.cpp apso.cpp main.cpp -std=c++17 -o executor
 executor 
 
 --- Linux ---
-g++ problem.cpp collection.cpp apso.cpp main.cpp -std=c++17 -lstdc++fs -o executor
+g++ problem.cpp collection.cpp fuzzyset.cpp apso.cpp main.cpp -std=c++17 -o executor
 ./executor

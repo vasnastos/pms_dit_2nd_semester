@@ -20,4 +20,6 @@ class Collection
 
         void replace_point(int index,Data &x,double &y);
         void get_best_worst_values(double &besty,double &worsty);
+
+        size_t get_worst_objective_collection_idx();
 };

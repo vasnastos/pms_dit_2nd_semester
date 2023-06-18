@@ -5,12 +5,12 @@ Problem::Problem() {}
 
 Problem::Problem(int d):dimension(d) {
     this->eng=mt19937(high_resolution_clock::now().time_since_epoch().count());
+    this->left_bound.resize(d);
+    this->right_bound.resize(d);
 }
 
 void Problem::set_dimension(int dim) {
     this->dimension=dim;
-    this->set_neural_left_margin(-10);
-    this->set_neural_right_margin(10);
 }
 
 void Problem::set_margins(const double &left_margin,const double &right_margin)
@@ -18,21 +18,29 @@ void Problem::set_margins(const double &left_margin,const double &right_margin)
     this->margins.param(std::uniform_real_distribution<double>::param_type(left_margin,right_margin));
 }
 
-void Problem::set_neural_left_margin(const double &value)
+void Problem::set_left_bound(const double &value)
 {
-    this->neural_network_left_margin=value;
+    fill(this->left_bound.begin(),this->left_bound.end(),value);
 }
 
-void Problem::set_neural_right_margin(const double &value)
+void Problem::set_right_bound(const double &value)
 {
-    this->neural_network_right_margin=value;
+    fill(this->right_bound.begin(),this->right_bound.end(),value);
+}
+void Problem::set_left_bound(const Data &data)
+{
+    this->left_bound=data;
+}
+
+void Problem::set_right_bound(const Data &data)
+{
+    this->right_bound=data;
 }
 
 int Problem::get_dimension()const
 {
     return this->dimension;
 }
-
 
 Data Problem::get_sample()
 {
@@ -55,21 +63,11 @@ double Problem::get_right_margin()const
     return this->margins.b();
 }
 
-double Problem::get_neural_left_margin()const
-{
-    return this->neural_network_left_margin;
-}
-
-double Problem::get_neural_right_margin()const
-{
-    return this->neural_network_right_margin;
-}
-
 bool Problem::is_point_in(Data &x)
 {
     for(int i=0,t=x.size();i<t;i++)
     {
-        if(x[i]<this->neural_network_left_margin || x[i]>this->neural_network_right_margin)
+        if(x[i]<this->left_bound[i] || x[i]>this->right_bound[i])
         {
             return false;
         }
