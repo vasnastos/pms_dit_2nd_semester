@@ -17,6 +17,7 @@ class Arena
         string results_path;
         string arena_file;
         vector <Solution> results;
+
     public:
         Arena() {
             // Create results file
@@ -102,8 +103,6 @@ class Arena
             }
             fp<<sol.id<<","<<sol.weight_init<<","<<sol.normalization<<","<<sol.optimizer<<","<<sol.test_error<<","<<sol.accuracy<<endl;
             fp.close();
-
-            // cout<<"SOL SAVED:"<<sol.id<<","<<sol.weight_init<<","<<sol.normalization<<","<<sol.optimizer<<","<<sol.test_error<<","<<sol.accuracy<<endl;
         }
 
         void plot()
@@ -119,7 +118,6 @@ class Arena
             cout<<"Results plotted at "<<plot_path.string()<<endl;
         }
 };
-
 
 int main(int argc,char *argv[])
 {

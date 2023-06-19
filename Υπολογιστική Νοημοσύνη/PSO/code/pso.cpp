@@ -54,11 +54,11 @@ void PSO::step()
     // Data geometric_center_points;
 
     // --> Linearly Decreasing inertia 
-    // this->inertia=this->inertia_max-(this->inertia_max-this->inertia_min)*static_cast<double>(this->iter)/static_cast<double>(this->max_iters);
+    this->inertia=this->inertia_max-(this->inertia_max-this->inertia_min)*static_cast<double>(this->iter)/static_cast<double>(this->max_iters);
     // this->inertia=(this->inertia_min-this->inertia_max)*((this->max_iters-this->iter)/this->max_iters)+this->inertia_max;
     
     //--> Non-Linearly decreasing inertia
-    this->inertia=this->inertia_min+(this->inertia_max-this->inertia_min)/(1+exp(-k*(this->iter-this->midpoint))); 
+    // this->inertia=this->inertia_min+(this->inertia_max-this->inertia_min)/(1+exp(-k*(this->iter-this->midpoint))); 
     velocity_y=0;
     
     
