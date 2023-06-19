@@ -29,12 +29,9 @@ MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):
         upper_bound=6.0/sqrt(d->dimension()+n);
     }
     else
-    {
-        uniform_real_distribution <double> random_lower_bound(-5,-20);
-        uniform_real_distribution <double> random_upper_bound(5,20);
-        
-        lower_bound=random_lower_bound(this->eng);
-        upper_bound=random_upper_bound(this->eng);
+    {   
+        lower_bound=-1;
+        upper_bound=1;
     }
 
     this->set_margins(lower_bound,upper_bound);

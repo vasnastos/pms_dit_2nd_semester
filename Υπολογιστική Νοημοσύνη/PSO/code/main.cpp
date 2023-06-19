@@ -71,21 +71,22 @@ class Arena
                 train_dt.normalization(x);
                 test_dt.normalization(x);
 
-                for(const string &wit:weight_init_methods)
+                // for(const string &wit:weight_init_methods)
+                // {
+                MlpProblem *model=new MlpProblem(&train_dt,10,"");
+                for(const string &optimizer:optimizers)
                 {
-                    MlpProblem model(&train_dt,10,wit);
-                    for(const string &optimizer:optimizers)
-                    {
-                        cout<<"Id:"<<experiment_id<<" Dataset:"<<dataset->get_id()<<"  Dimension:"<<model.get_dimension()<<"  Normalization:"<<x<<"  WeightInit:"<<wit<<"  TrainMethod:"<<optimizer<<endl;
-                        experiment_id++;
-                        stringstream filepath;
-                        filepath<<train_dt.get_id()<<"_"<<x<<"_"<<wit<<"_"<<optimizer<<".wdtrain";
-                        model.saved_path_component=filepath.str();
-                        model.optimize_weights(optimizer);
-                        error=model.get_test_error(&test_dt);
-                        this->save(Solution(train_dt.get_id(),wit,x,optimizer,error,1.0-error));
-                    }
+                    cout<<"Id:"<<experiment_id<<" Dataset:"<<dataset->get_id()<<"  Dimension:"<<model->get_dimension()<<"  Normalization:"<<x<<"  TrainMethod:"<<optimizer<<endl;
+                    experiment_id++;
+                    stringstream filepath;
+                    filepath<<train_dt.get_id()<<"_"<<x<<"_"<<"_"<<optimizer<<".wdtrain";
+                    model->saved_path_component=filepath.str();
+                    model->optimize_weights(optimizer);
+                    error=model->get_test_error(&test_dt);
+                    this->save(Solution(train_dt.get_id(),"Default",x,optimizer,error,100.0-error));
                 }
+                // }
+                delete model;
                 delete dataset;
             }
         }
