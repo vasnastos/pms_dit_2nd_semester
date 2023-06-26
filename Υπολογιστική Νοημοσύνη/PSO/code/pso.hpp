@@ -1,51 +1,61 @@
 #pragma once
 #include "problem.hpp"
-#include "collection.hpp"
 #include <fstream>
 #ifdef __linux__
 #include <climits>
 #endif
+
+struct Particle
+{
+    static Data left_bound;
+    static Data right_bound;
+    
+    Data velocity;
+    Data position;
+    Data best_position;
+    double best_objective;
+    double objective_value;
+
+    Particle();
+    Particle(Data &x);
+    Particle(Data &x,double &obj_value);
+
+    void update_velocity(double &inertia,double &c1,double &c2,Particle &global_best);
+    bool update_position();
+    void update_objective_value(double &new_obj_value,Particle &global_best_particle);
+};
 
 
 class PSO
 {
     private:
         Problem *problem;
-        Collection particle;
-        Collection best_particle;
-        Collection velocity;
+        vector <Particle> particles;
+        Particle best_particle;
+        Particle old_best_particle;
 
-        int particle_count;
         double inertia;
+        double c1,c2;
         double inertia_max,inertia_min;
-        size_t iter;
-        size_t max_iters;
-        Data best_x;
-        double best_y;
-        Data y_distribution;
-        
-        double c1,c2,c3; // Acceleration coefficients
-        double k,midpoint; // Non Linear Decay Rate
-        int T; // geometric center update scene
-        mt19937 eng;
+        int iter,max_iters,num_particles;
 
-        bool terminated();
+        Data objectives;
+        int k;
+        double midpoint;
+
+        void update_inertia();
         void step();
+        bool terminated();
+        void get_best_worst_objective(double &max_obj,double &min_obj);
+
+        // For stopping rule
+        double v1,v2; // auxiliary variables
+        double variance;
 
     public:
-        PSO(Problem *p,int number_of_iterations=1000,int particle_count=500);
-        ~PSO();
-
-        void set_max_iters(int number_of_iterations);
-        int get_max_iters()const;
-
-        void set_particle_count(int cnt);
-        int get_particle_count()const;
-
-        Data get_best_x();
-        double get_best_y();
-        Data geometric_center();
-        
+        PSO(Problem *data,int num_particles,int num_iterations);
         void solve();
         void save(string filename);
+
+        Data get_best_x();
 };

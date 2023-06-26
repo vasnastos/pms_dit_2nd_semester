@@ -2,12 +2,12 @@
 
 Adam::Adam(Problem *instance):problem(instance),iter(0),max_iters(100000)
 {
-    this->alpha=1e-3;
+    this->alpha=1e-4;
     this->beta1=0.9;
     this->beta2=0.999;
     this->learning_rate=1e-2;
 
-    int pdimension=instance->get_dimension();
+    int pdimension=instance->getDimension();
     this->m.resize(pdimension);
     this->u.resize(pdimension);
     this->mhat.resize(pdimension);
@@ -18,8 +18,8 @@ Adam::~Adam() {}
 
 void Adam::solve()
 {
-    int pdimension=this->problem->get_dimension();
-    this->xpoint=this->problem->get_sample();
+    int pdimension=this->problem->getDimension();
+    this->xpoint=this->problem->getSample();
     
     // Initialize first_momentum, second_memontum
     fill(this->m.begin(),this->m.end(),0.0);
@@ -34,14 +34,14 @@ void Adam::solve()
         {
             this->m[i]=this->beta1 * this->m[i]+(1-this->beta1) * gradient_points[i];
             this->u[i]=this->beta2 * this->u[i]+(1-this->beta2) * pow(gradient_points[i],2);
-            this->mhat[i]=this->m[i]/(1-pow(this->beta1,this->iter+1));
-            this->uhat[i]=this->u[i]/(1-pow(this->beta2,this->iter+1));
+            this->mhat[i]=1.0/(1-pow(this->beta1,this->iter+1))*this->m[i];
+            this->uhat[i]=1.0/(1-pow(this->beta2,this->iter+1))*this->u[i];
 
             this->xpoint[i]=this->xpoint[i] - this->alpha * this->mhat[i]/(sqrt(this->uhat[i])+this->learning_rate);
             // this->xpoint[i]=this->xpoint[i] - this->alpha * this->m[i]/sqrt(this->v[i]+this->learning_rate)
         }
         // this->alpha=this->alpha * sqrt(1-pow(this->beta2,iter_id+1))/(1-pow(this->beta1,iter_id+1));
-        this->objective_value=this->problem->stat_minimize_function(this->xpoint);
+        this->objective_value=this->problem->statFunmin(this->xpoint);
         this->iter++;
         this->y_distribution.emplace_back(this->objective_value);
         cout<<"ADAM. Iter:"<<this->iter<<"\tValue:"<<this->objective_value;
@@ -62,21 +62,20 @@ bool Adam::terminated()
 {
     double gradient_mean_square_error=this->problem->grms(this->xpoint);
     cout<<"\tGrms:"<<gradient_mean_square_error<<endl;
-    return gradient_mean_square_error<1e-3 || this->iter>this->max_iters || fabs(this->objective_value-0)<1e-4;
+    return gradient_mean_square_error<1e-3  || fabs(this->objective_value-0)<1e-4;
 }
 
 void Adam::save(string filename)
 {
     fstream fp;
-
-    fs::path result_path;
-    for(const string &x:{"..","results","train_error"})
+    fs::path pth;
+    for(auto &x:{"..","results","distribution"})
     {
-        result_path.append(x);
+        pth.append(x);
     }
-    result_path.append(filename);
+    pth.append(filename);
 
-    fp.open(result_path.string(),ios::out);
+    fp.open(pth.string(),ios::out);
     for(const auto &y_value:this->y_distribution)
     {
         fp<<y_value<<endl;

@@ -1,337 +1,279 @@
 #include "mlp_problem.hpp"
 
-MlpProblem::MlpProblem(Dataset *d,int n,string weight_initialization_technique):data(d),nodes(n),Problem((d->dimension()+2)*n) {
-    
-    for(int i=0;i<n;i++)
+/** edo einai i synartisi dimioyrgias **/
+MlpProblem::MlpProblem(Dataset *d,int n)
+    :Problem((d->dimension()+2)*n)
+{
+    data = d;
+    int k = (d->dimension()+2)*n;
+    left.resize(k);
+    right.resize(k);
+    /** edo bazo ta oria ton
+     *  parametron tou neuronikou diktyou **/
+    for(int i=0;i<k;i++)
     {
-        this->weights[i].resize(d->dimension()+2);
+        left[i]=-100;
+        right[i]=100;
     }
-    double lower_bound,upper_bound;
-
-    if(weight_initialization_technique=="Default")
-    {
-        lower_bound=-10;
-        upper_bound=10;
-    }
-    else if(weight_initialization_technique=="Random")
-    {
-        lower_bound=-0.01;
-        upper_bound=0.01;
-    }
-    else if(weight_initialization_technique=="Xavier")
-    {
-        lower_bound=-1.0/sqrt(d->dimension());
-        upper_bound=1.0/sqrt(d->dimension());
-    }
-    else if(weight_initialization_technique=="UXavier")
-    {
-        lower_bound=-6.0/sqrt(d->dimension()+n);
-        upper_bound=6.0/sqrt(d->dimension()+n);
-    }
-    else
-    {   
-        lower_bound=-1;
-        upper_bound=1;
-    }
-
-    this->set_margins(lower_bound,upper_bound);
-
+    weight.resize(k);
+    initMethod="smallValues";
 }
 
-MlpProblem::~MlpProblem() {}
-
-void MlpProblem::set_weights(map <int,Data> &w) {this->weights=w;}
-
-void MlpProblem::set_weights(Data &w)
+void    MlpProblem::setInitMethod(string m)
 {
-    assert(w.size()==this->dimension);
-    this->weights.clear();
+    initMethod = m;
+}
 
-    for(int i=0;i<this->nodes;i++)
+string  MlpProblem::getInitMethod() const
+{
+    return initMethod;
+}
+
+Data    MlpProblem::getSample()
+{
+    Data x;
+    x.resize(getDimension());
+    if(initMethod==SMALLVALUES_METHOD)
     {
-        this->weights[i].resize(this->data->dimension()+2);
-    }
-    
-    int weight_size=this->data->dimension()+2;
-    int node_i,pos;
-
-    for(int i=0;i<this->dimension;i++)
-    {
-        node_i=i/weight_size;
-        pos=i%weight_size;
-        this->weights[node_i][pos]=w[i];
-    }
-}
-
-
-void MlpProblem::set_nodes(int units)
-{
-    this->nodes=units;
-}
-
-// Getters
-map <int,Data> MlpProblem::get_weights()const {return this->weights;}
- 
-int MlpProblem::get_nodes()const
-{
-    return this->nodes;
-}
-
-double MlpProblem::minimize_function(Data &w)
-{
-    this->set_weights(w);
-    return this->get_train_error();
-}
-
-Data MlpProblem::gradient(Data &x)
-{
-    Data g;
-    this->set_weights(x);
-    g.resize(this->dimension);
-    fill(g.begin(),g.end(),0.0);
-    double model_output;
-
-    for(int i=0,t=this->data->count();i<t;i++)
-    {
-        Data xi_point=this->data->get_xpointi(i);
-        Data gradient_points=this->get_derivative(xi_point);
-        model_output=this->output(xi_point)-this->data->get_ypointi(i);
-        for(int j=0,js=g.size();j<js;j++)
+        double left = -0.1;
+        double right  = 0.1;
+        for(int i=0;i<getDimension();i++)
         {
-            g[j]+=gradient_points[j]*model_output;
+            x[i]=left + (right - left)*rand()*1.0/RAND_MAX;
         }
     }
-
-    // Removed it for categorical crossentropy
-    for(int j=0,js=g.size();j<js;j++)
+    else
+    if(initMethod == XAVIER_METHOD)
     {
-        g[j]*=2.0;
+        double left = -1.0/sqrt(data->dimension());
+        double right  = 1.0/sqrt(data->dimension());
+        for(int i=0;i<getDimension();i++)
+        {
+            x[i]=left + (right - left)*rand()*1.0/RAND_MAX;
+
+        }
     }
-    
+    else
+    if(initMethod == XAVIERNORM_METHOD)
+    {
+        int nodes = weight.size()/(data->dimension()+2);
+        double left = -1.0/sqrt(data->dimension()+nodes);
+        double right  = 1.0/sqrt(data->dimension()+nodes);
+        for(int i=0;i<getDimension();i++)
+        {
+            x[i]=left + (right - left)*rand()*1.0/RAND_MAX;
+
+        }
+    }
+    return x;
+}
+
+void    MlpProblem::setWeights(Data &w)
+{
+    weight  =w ;
+}
+
+/** edo ypologizoume to train error pou einai
+ *  kai i timi pou elaxistopoioume **/
+double MlpProblem::funmin(Data &x)
+{
+    weight  =x ;
+    return getTrainError();
+
+}
+
+/** edo epistrefoume tin paragogo tis
+ *  synartisis funmin(x) os pros x**/
+Data    MlpProblem::gradient(Data &x)
+{
+    Data g;
+    weight = x;
+    g.resize(weight.size());
+    for(int i=0;i<(int)g.size();i++)
+        g[i]=0.0;
+    for(int i=0;i<data->count();i++)
+    {
+        Data xx = data->get_xpointi(i);
+        Data gtemp = getDerivative(xx);
+        double per=getOutput(xx)-data->get_ypointi(i);
+        for(int j=0;j<(int)g.size();j++)	g[j]+=gtemp[j]*per;
+    }
+    for(int j=0;j<(int)x.size();j++) g[j]*=2.0;
     return g;
 }
 
-double MlpProblem::sigmoid(double x)
+double  MlpProblem::sig(double x)
 {
     return 1.0/(1.0+exp(-x));
 }
 
-double MlpProblem::sigmoid_derivative(double &x)
+double  MlpProblem::sigder(double x)
 {
-    double sigmoid_res=this->sigmoid(x);
-    return sigmoid_res*(1-sigmoid_res);
+    double s = sig(x);
+    return s*(1.0-s);
 }
 
-double MlpProblem::output(Data &x)
+/** einai i exodos tou neuronikou gia to protypo x**/
+double  MlpProblem::getOutput(Data  &x)
 {
-    double dot_product=0.0;
-    double model_output=0.0;
-    int d=this->data->dimension();
-
-    for(int i=0;i<this->nodes;i++)
+    double arg=0.0;
+    double per=0.0;
+    int nodes = weight.size()/(data->dimension()+2);
+     int d = data->dimension();
+    for(int i=1;i<=nodes;i++)
     {
-        dot_product=0.0;
+        arg=0.0;
         for(int j=1;j<=d;j++)
         {
-            dot_product+=this->weights[i][j]*x[j-1];
+            int pos=(d+2)*i-(d+1)+j-1;
+            arg+=weight[pos]*x[j-1];
         }
-        dot_product+=this->weights[i][d+1];
-        model_output+=this->weights[i][0] * this->sigmoid(dot_product);
+        arg+=weight[(d+2)*i-1];
+        per+=weight[(d+2)*i-(d+1)-1]*sig(arg);
     }
-    return model_output;
+    return per;
 }
 
-Data MlpProblem::get_derivative(Data &x)
-{   
-    double dot_product;
-    int d=this->data->dimension();
-    Data G;
-    G.resize(this->dimension);
-
-    for(int i=1;i<=this->nodes;i++)
-    {
-        dot_product=0.0;
-        for(int j=1;j<=d;j++)
-        {
-            dot_product+=this->weights[i-1][j]*x[j-1];
-        }
-        dot_product+=this->weights[i-1][d+1];
-        G[(d+2)*i-1]=this->weights[i-1][0]*this->sigmoid_derivative(dot_product);//activation
-        G[(d+2)*i-(d+1)-1]=this->sigmoid(dot_product);//bias
-
-        for(int k=1;k<=d;k++)
-        {
-            G[(d+2)*i-(d+1)+k-1]=x[k-1] * this->sigmoid_derivative(dot_product) * this->weights[i-1][0];
-        }
-    }
-    return G;
-}
-
-void MlpProblem::optimize_weights(string optimizer,bool save_results)
+/** einai i paragogos tou neuronikou os
+ *  pros to protypo x**/
+Data    MlpProblem::getDerivative(Data &x)
 {
-    Data optimized_weights;
-    if(optimizer=="Adam")
-    {
-        Adam handler(this);
-        handler.solve();
-        handler.save(this->saved_path_component);
-        optimized_weights=handler.get_best_x();
-        if(save_results)
-        {
-            handler.save(this->saved_path_component);
-        }
-    }
-    else if(optimizer=="PSO")
-    {
-        PSO handler(this,15000,200);
-        handler.solve();
-        handler.save(this->saved_path_component);
-        optimized_weights=handler.get_best_x();
-        if(save_results)
-        {
-            handler.save(this->saved_path_component);
-        }
-    }
-    else if(optimizer=="RmsProp")
-    {
-        RMSPROP handler(this);
-        handler.solve();
-        handler.save(this->saved_path_component);
-        optimized_weights=handler.get_best_x();
-        if(save_results)
-        {
-            handler.save(this->saved_path_component);
-        }
-    }
-    else 
-    {
-        cerr<<"Not Implement yet"<<endl;
-    }
+    double arg;
+        double f,f2;
+        int nodes = weight.size()/(data->dimension()+2);
+        int d = data->dimension();
+        Data G;
+        G.resize(weight.size());
 
-    if(optimized_weights.empty())
-    {
-        exit(EXIT_FAILURE);
+        for(int i=1;i<=nodes;i++)
+        {
+                arg = 0.0;
+                for(int j=1;j<=d;j++)
+                {
+                        arg+=weight[(d+2)*i-(d+1)+j-1]*x[j-1];
+                }
+                arg+=weight[(d+2)*i-1];
+                f=sig(arg);
+                f2=f*(1.0-f);
+                G[(d+2)*i-1]=weight[(d+2)*i-(d+1)-1]*f2;
+                G[(d+2)*i-(d+1)-1]=f;
+                for(int k=1;k<=d;k++)
+                {
+                        G[(d+2)*i-(d+1)+k-1]=
+                                x[k-1]*f2*weight[(d+2)*i-(d+1)-1];
+                }
     }
-
-    this->set_weights(optimized_weights);
+        return G;
 }
 
+/** edo exoume to sfalma ekpaideysis **/
 
-double MlpProblem::get_train_error()
+double  MlpProblem::getTrainError()
 {
-    double error=0.0;
-    Data xi_point;
-    double predicted_value;
-    if(this->data->get_category()==Category::CLF)
+    double error = 0.0;
+    if(this->data->get_category()==Category::REG)
     {
-        for(int i=0,t=this->data->count();i<t;i++)
+        for(int i=0;i<data->count();i++)
         {
-            xi_point=this->data->get_xpointi(i);
-            predicted_value=this->output(xi_point);
-            error+=(fabs(this->data->get_class(predicted_value)-this->data->get_class(i))>1e-4);
+            Data xx = data->get_xpointi(i);
+            double yy = data->get_ypointi(i);
+            double per = getOutput(xx);
+            error+= (per-yy)*(per-yy);
         }
-        error=(error*100.0)/this->data->count();
-    }
-    else{
-        for(int i=0,t=this->data->count();i<t;i++)
-        {
-            xi_point=this->data->get_xpointi(i);
-            predicted_value=this->output(xi_point);
-            error+=pow(predicted_value-this->data->get_ypointi(i),2);
-        }
-    }
-    return error;
-}
-
-
-double MlpProblem::get_test_error(Dataset *test_dt)
-{
-    double error=0.0,predicted_value;
-    Data xi_point;
-    if(this->data->get_category()==Category::CLF)
-    {
-        double actual_class,predicted_class;
-        for(int i=0,t=test_dt->count();i<t;i++)
-        {
-            xi_point=test_dt->get_xpointi(i);
-            actual_class=test_dt->get_class(i);
-            predicted_value=this->output(xi_point);
-            predicted_class=test_dt->get_class(predicted_value);
-            error+=(fabs(predicted_class-actual_class)>1e-4);
-        }
-        error=(error*100.0)/test_dt->count();
     }
     else
     {
-        double actual_value;
-        for(int i=0,t=test_dt->count();i<t;i++)
+        Data xi_point;
+        double y_true;
+        double y_pred;
+        for(int i=0,t=this->data->count();i<t;i++)
         {
-            xi_point=test_dt->get_xpointi(i);
-            predicted_value=this->output(xi_point);
-            actual_value=test_dt->get_ypointi(i);
-            error+=pow(predicted_value-actual_value,2);
+            xi_point=this->data->get_xpointi(i);
+            y_true=this->data->get_class(i);
+            y_pred=this->getOutput(xi_point);
+            error+=fabs(this->data->get_class(y_pred)-y_true)>1e-4;
         }
+        error=(error*100.0)/static_cast<double>(this->data->count());
     }
     return error;
 }
 
-
-vector <pair <double,double>> MlpProblem::predict(Dataset *test_dt)
+/** kanei oti kai i getTrainError() alla gia to test set **/
+double  MlpProblem::getTestError(Dataset *test)
 {
-    double predicted_value;
+    double error = 0.0;
     Data xi_point;
-    vector <pair <double,double>> predictions;
-
-    for(int i=0,t=test_dt->count();i<t;i++)
+    double y_true;
+    double y_pred;
+    if(test->get_category()==Category::REG)
     {
-        xi_point=test_dt->get_xpointi(i);
-        predicted_value=this->output(xi_point);
-        predictions.emplace_back(make_pair(test_dt->get_class(i),test_dt->get_class(predicted_value)));
+        for(int i=0;i<test->count();i++)
+        {
+            xi_point = test->get_xpointi(i);
+            y_true = test->get_ypointi(i);
+            y_pred = getOutput(xi_point);
+            error+= pow(y_pred-y_true,2);
+        }
     }
-    return predictions;
+    else
+    {
+        for(int i=0,t=test->count();i<t;i++)
+        {
+            xi_point=test->get_xpointi(i);
+            y_true=test->get_class(i);
+            y_pred=this->getOutput(xi_point);
+            error+=fabs(test->get_class(y_pred)-y_true)>1e-4;
+        }
+        error=(error*100)/test->count();
+    }
+    return error;
 }
 
-double MlpProblem::categorical_crossentropy()
+/** edo epistrefo to classification sfalma sto test set **/
+double  MlpProblem::getClassTestError(Dataset *test)
 {
-    double loss=0;
-    double actual_class,predicted_value,predicted_class;
-    Data xi_point;
-    for(int i=0;i<this->data->count();i++)
+    double error = 0.0;
+    for(int i=0;i<test->count();i++)
     {
-        xi_point=this->data->get_xpointi(i);
-        actual_class=this->data->get_class(i);
-        predicted_value=this->output(xi_point);
-        loss-=actual_class * log(predicted_value)+(1-actual_class) * log(1-predicted_value);
+        Data xx = test->get_xpointi(i);
+        double realClass = test->get_class(i);
+        double per = getOutput(xx);
+        double estClass = test->get_class(per);
+        error+= (fabs(estClass - realClass)>1e-5);
     }
-    return loss;
+    /** to metatrepoume se pososto **/
+    return error*100.0/test->count();
 }
 
-double MlpProblem::rmse()
+MlpProblem::~MlpProblem()
 {
-    double error=0.0,predicted_value,actual_value;
-    Data xi_point;
-    for(int i=0,t=this->data->count();i<t;i++)
-    {
-        xi_point=this->data->get_xpointi(i);
-        actual_value=this->data->get_ypointi(i);
-        predicted_value=this->output(xi_point);
-        error+=pow(actual_value-predicted_value,2);
-    }
-    return sqrt(error/this->data->count());
 }
 
-double MlpProblem::mse()
+void MlpProblem::optimize(string optimizer)
 {
-    double error=0.0,predicted_value,actual_value;
-    Data xi_point;
-    for(int i=0,t=this->data->count();i<t;i++)
+    Data new_weight_set;
+    if(optimizer=="Adam")
     {
-        xi_point=this->data->get_xpointi(i);
-        actual_value=this->data->get_ypointi(i);
-        predicted_value=this->output(xi_point);
-        error+=pow(actual_value-predicted_value,2);
+        Adam model(this);
+        model.solve();
+        model.save(this->save_distribution_path);
+        new_weight_set=model.get_best_x();
     }
-    return (error*100.0)/static_cast<double>(this->data->count());
+    else if(optimizer=="PSO")
+    {
+        PSO model(this,200,5000);
+        model.solve();
+        cout<<this->save_distribution_path<<endl;
+        model.save(this->save_distribution_path);
+        new_weight_set=model.get_best_x();
+    }
+
+    // Local search
+    BFGS loptimizer(this,new_weight_set,5000);
+    loptimizer.solve();
+    new_weight_set=loptimizer.get_best_x();
+
+    this->setWeights(new_weight_set);    
 }
 
 Category MlpProblem::category()

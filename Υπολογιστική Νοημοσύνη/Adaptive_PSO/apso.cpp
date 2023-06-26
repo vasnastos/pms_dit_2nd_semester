@@ -67,7 +67,7 @@ void APSO::step()
             r1=rand_real_eng(this->eng);
             r2=rand_real_eng(this->eng);
 
-            velocity_x[j]=this->inertia * velocity_x[j] + this->params.c1 * r1 * (best_positional_x[j]-x[j])+this->params.c2 * r2 * (this->best_x[j] - x[j]);
+            velocity_x[j]= this->params.constrictor_factor*(this->inertia * velocity_x[j] + this->params.c1 * r1 * (best_positional_x[j]-x[j])+this->params.c2 * r2 * (this->best_x[j] - x[j]));
             // velocity_x[j]=this->params.constrictor_factor *(velocity_x[j] + this->params.c1 * r1 * (best_positional_x[j]-x[j])+this->params.c2 * r2 * (this->best_x[j]-x[j]))
         }
         this->velocity.replace_point(i,velocity_x,velocity_y);
@@ -236,7 +236,7 @@ void APSO::adjust_acceleration_coefficients(double &acceleration_rate,string c1_
     this->params.c2=c2_new;
 }
 
-void APSO::ESE()
+void APSO::ESE()  //evolutionary state optimization
 {
     double efactor=this->evaluationary_factor();
     double s1_factor=0.0;
@@ -314,7 +314,7 @@ void APSO::ESE()
     }
     else if(efactor<=0.9)
     {
-        s4_factor=5*efactor-3.5;
+        s4_factor=5.0*efactor-3.5;
     }
     else if(efactor<=1)
     {

@@ -1,6 +1,6 @@
 Instance,Category,Separator,Categorical
 phising_websites,clf,comma,no
-spambase.data,clf,comma,no
+spambase,clf,comma,no
 ionosphere,clf,comma,yes
-housing,reg,tab,no
-Concrete_Data,reg,comma,no
+forestfires,reg,comma,no
+RP_hardware_performance,reg,comma,no

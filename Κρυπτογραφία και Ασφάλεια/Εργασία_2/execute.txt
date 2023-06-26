@@ -1,0 +1,1 @@
+python AES_encryptor.py --folder data --key key_save --input passcode.txt --output encryptor_data 

@@ -1,70 +1,106 @@
 #include "problem.hpp"
 
-
-Problem::Problem():best_xpoint(Data()),best_ypoint(1e+100),function_calls(0) {
-}
-
-Problem::Problem(int d):dimension(d) {
-    this->eng=mt19937(high_resolution_clock::now().time_since_epoch().count());
-    this->set_neural_left_margin(-10);
-    this->set_neural_right_margin(10);
-}
-
-void Problem::set_dimension(int dim) {
-    this->dimension=dim;
-}
-
-void Problem::set_margins(double &left_margin,double &right_margin)
+Problem::Problem(int n)
 {
-    this->margins.param(uniform_real_distribution<double>::param_type(left_margin,right_margin));
+    dimension = n;
+    left.resize(dimension);
+    right.resize(dimension);
+    besty = 1e+100;
+    functionCalls = 0;
 }
 
-pair <double,double> Problem::get_margins()const
+double    Problem::statFunmin(Data &x)
 {
-    return make_pair(this->margins.a(),this->margins.b());
-}
-
-int Problem::get_dimension()const
-{
-    return this->dimension;
-}
-
-
-Data Problem::get_sample()
-{
-    Data coefficients;
-    coefficients.resize(this->dimension);
-    for(int i=0;i<this->dimension;i++)
+    double y = funmin(x);
+    if(y<besty)
     {
-        coefficients[i]=this->margins(this->eng);
+        besty = y;
+        bestx = x;
     }
-    return coefficients;
+    ++functionCalls;
+    return y;
 }
 
-void Problem::set_neural_left_margin(double new_left_margin)
+Data    Problem::getBestx() const
 {
-    this->neural_network_left_margin=new_left_margin;
+    return bestx;
 }
 
-void Problem::set_neural_right_margin(double new_right_margin)
+double  Problem::getBesty() const
 {
-    this->neural_network_right_margin=new_right_margin;
-}
-double Problem::get_neural_left_margin()const
-{
-    return this->neural_network_left_margin;
+    return besty;
 }
 
-double Problem::get_neural_right_margin()const
+int     Problem::getFunctionCalls() const
 {
-    return this->neural_network_right_margin;
+    return functionCalls;
 }
 
-bool Problem::is_point_in(Data &x)
+int Problem::getDimension() const
 {
-    for(auto &value:x)
+    return dimension;
+}
+
+
+/** Dimiourgei me omoiomorfi katanomi
+ *  ena neo simeio sto pedio orismou tis synartisis.
+ *  Sta neuronika diktya epistrefei ena neo synolo
+ *  parametron
+    x = a+(b-a)*r, r in[0,1]
+**/
+Data Problem::getSample()
+{
+    Data x;
+    x.resize(dimension);
+    double r;
+    for (int i = 0; i < dimension; i++)
     {
-        if(value<this->neural_network_left_margin || value>this->neural_network_right_margin)
+        r = ((double)rand()/(double)RAND_MAX);
+        if (r < 0)
+            r = -r;
+        x[i] = 2.0 * r-1.0;
+        //x[i] = left[i] + (right[i] - left[i]) * r;
+    }
+    return x;
+}
+void Problem::setLeftMargin(Data &x)
+{
+    left = x;
+}
+
+void Problem::setRightMargin(Data &x)
+{
+    right = x;
+}
+Data Problem::getLeftMargin() const
+{
+    return left;
+}
+
+Data Problem::getRightMargin() const
+{
+    return right;
+}
+
+double Problem::grms(Data &x)
+{
+    Data g = gradient(x);
+    int i;
+    double s = 0.0;
+    for (i = 0; i < x.size(); i++)
+        s = s + g[i] * g[i];
+    return sqrt(s / x.size());
+}
+
+Problem::~Problem()
+{
+}
+
+bool Problem::isPointInside(Data &x)
+{
+    for(int i=0,t=x.size();i<t;i++)
+    {
+        if(x[i]<this->left[i] || x[i]>this->right[i])
         {
             return false;
         }
@@ -72,28 +108,7 @@ bool Problem::is_point_in(Data &x)
     return true;
 }
 
-Problem::~Problem() {}
-
-double Problem::grms(Data &x)
+Category Problem::category()
 {
-    Data gradients=this->gradient(x);
-    double s=0.0;
-    for(int i=0,t=x.size();i<t;i++)
-    {
-        s+=pow(gradients[i],2);
-    }
-    return sqrt(s/x.size());
-}
-
-
-double Problem::stat_minimize_function(Data &x)
-{
-    double objective_value=this->minimize_function(x);
-    if(objective_value<this->best_ypoint)
-    {
-        this->best_xpoint=x;
-        this->best_ypoint=objective_value;
-    }
-    this->function_calls++;
-    return objective_value;
+    return Category::REG;
 }

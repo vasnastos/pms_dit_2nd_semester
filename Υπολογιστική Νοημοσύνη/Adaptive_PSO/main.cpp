@@ -69,9 +69,9 @@ class Schwefel:public Problem
 
 int main(int argc,char **argv)
 {
-    Schwefel problem(5);
+    RosenBrock problem(8);
 
-    APSO solver(&problem,50,10000);
+    APSO solver(&problem,100,20000);
     solver.solve();
 
     return EXIT_SUCCESS;

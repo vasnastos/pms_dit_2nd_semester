@@ -32,7 +32,7 @@ void Dataset::read(string filename)
     bool has_categorical=Config::categorical_label(this->id);
     this->set_category(Config::get_category(this->id));
 
-    bool header=(this->id=="Concrete_Data");
+    bool header=(this->id=="Concrete_Data" || this->id=="forestfires" || this->id=="RP_hardware_performance");
 
     fstream fp;
     fp.open(filename,ios::in);
@@ -113,9 +113,9 @@ void Dataset::read(string filename)
                 header=false;
                 continue;
             }
+
             if(line=="") continue;
             if(trim(line)[0]=='@') continue;
-
             data=split(line,seperator);
 
             Data row;
@@ -514,8 +514,11 @@ pair <Dataset,Dataset> Dataset::train_test_split(double test_size)
     train_dt.set_data(train_xpoint_set,train_ypoint_set);
     test_dt.set_data(test_xpoint_set,test_ypoint_set);
 
-    train_dt.make_patterns();
-    test_dt.make_patterns();
+    // if(this->get_category()==Category::CLF)
+    // {
+    //     train_dt.make_patterns();
+    //     test_dt.make_patterns();
+    // }
 
     return make_pair(train_dt,test_dt);
 }

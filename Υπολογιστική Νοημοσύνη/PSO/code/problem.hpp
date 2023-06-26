@@ -1,53 +1,143 @@
-#pragma once
-#include <iostream>
+#ifndef PROBLEM_H
+#define PROBLEM_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+# include <string>
+#include <math.h>
 #include <vector>
+#include <iostream>
 #include <random>
-#include <filesystem>
-#include <map>
-#include <cassert>
-#include <numeric>
-#include <fstream>
+#include <chrono>
 #include "base.hpp"
+
 using namespace std;
 using namespace std::chrono;
-namespace fs=std::filesystem;
-typedef vector <double> Data;
 
+
+typedef vector<double> Data;
+typedef vector<Data> Matrix;
+
+/** Gia na kano optimize tin f(x) **/
+/**
+ * @brief The Problem class, geniki klasi ylopoihshs
+ * problimaton beltistopoihshs.
+ */
 class Problem
 {
-    protected:
-        int dimension;
-        mt19937 eng;
-        uniform_real_distribution <double> margins;
+protected:
+    /** dimension = > diastasi synartisis. Gia ta neuronika
+     *  einai poses parametrous exei to neuroniko **/
+    int dimension;
+    /** left=> einai to aristero akro tis synartisis.
+     *     Gia ta neuronika diktya einai to aristero akro ton baron.
+    **/
+    /** right = > einai to dexi akro tis synartisis.
+     */
+    Data left, right;
+    /**
+     * @brief bestx => einai to kalytero simeio pou exei ftasei
+     * i sunartisi, diladi kapoio topiko elaxisto. Gia ta neuronika
+     * diktya einai to kalytero synolo baron.
+     */
+    Data bestx;
+    /**
+     * @brief besty => einai i kalyteri timi tis synartisis. Gia ta
+     * neuronika diktya tha einai i pio xamili timi stin synartisi sfalmatos.
+     */
+    double besty;
+    int functionCalls;
+public:
+    /**
+     * @brief Problem, synartisi dimioyrgias
+     * @param n
+     */
+    Problem(int n);
 
-        double neural_network_left_margin;
-        double neural_network_right_margin;
+    /**
+     * @brief getDimension, epistrefei tin diastasi tou problimatos
+     * Sta neuronika diktya einai to plithos ton parametron tou
+     * diktyou.
+     * @return
+     */
+    int getDimension() const;
 
-        int function_calls;
-        Data best_xpoint;
-        double best_ypoint;
+    /**
+     * @brief getSample, epistrefei ena neo tyxaio sample sto
+     * pedio orismou tis synartisis
+     * @return
+     */
+    virtual Data getSample();
+    /**
+     * @brief setLeftMargin, orizei to aristero akro tou
+     * problimatos veltistopoihsis
+     * @param x
+     */
+    void setLeftMargin(Data &x);
+    /**
+     * @brief setRightMargin, orizei to dexi akro tou
+     * problimatos veltistopoihshs
+     * @param x
+     */
+    void setRightMargin(Data &x);
+    /**
+     * @brief getLeftMargin, epistrefei to aristero
+     * akro tou problimatos veltistopoihshs
+     * @return
+     */
+    Data getLeftMargin() const;
+    /**
+     * @brief getRightMargin, epistrefei to dexi akro
+     * tou problimatos veltistopoihshs
+     * @return
+     */
+    Data getRightMargin() const;
+    /**
+     * @brief funmin, epistrefei tin synartisi f(x)
+     *      * Gia ta neuronika tha epistrefei tin synartisi
+     * sfalmatos me weights ta x.
+     * @param x
+     * @return
+     */
+    virtual double funmin(Data &x) = 0;
+    /**
+     * @brief gradient, epistrefei tin paragogo tis f(x)
+        Sta neuronika diktya epistrefei tin paragogo
+        toy sfalmatos.
+     * @param x
+     * @return
+     */
+    virtual Data gradient(Data &x) = 0;
+    /**
+     * @brief statFunmin Kalei prota tin funmin(x)
+     * kai diatirei to bestvalue kai kanei update
+     * ta function calls
+     * @param x
+     */
+    double statFunmin(Data &x);
+    /**
+     * @brief grms, epistrefei tin mesi timi tou gradient(x)
+     * @param x
+     * @return
+     */
+    double grms(Data &x);
+    /**
+     *  Epistrefei to kalytero simeio gia tin f(x)
+     */
+    Data    getBestx() const;
+    /**
+     * @brief getBesty, epistrefei tin kalyteri f(x)
+     * Sta neuronika tha gyrnaei tin kalyteri timi tou sfalmatos
+     * @return
+     */
+    double  getBesty() const;
+    int     getFunctionCalls() const;
+    ~Problem();
 
-    public:
-        Problem();
-        Problem(int d);
-        virtual ~Problem();
-        
-        void set_margins(double &left_margin,double &right_margin);
-        void set_dimension(int dim);
-        void set_neural_left_margin(double new_left_margin);
-        void set_neural_right_margin(double new_right_margin);
-        double get_neural_left_margin()const;
-        double get_neural_right_margin()const;
-
-
-        int get_dimension()const;
-        pair <double,double> get_margins()const;
-        bool is_point_in(Data &x);
-        double grms(Data &x);
-
-        Data get_sample();
-        double stat_minimize_function(Data &x);
-        virtual double minimize_function(Data &x)=0;
-        virtual Data gradient(Data &x) = 0;
-        virtual Category category()=0;
+    bool isPointInside(Data &x);
+    virtual Category category();
 };
+
+
+#endif // PROBLEM_H

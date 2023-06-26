@@ -1,0 +1,1 @@
+python decryption.py  --folder data --key cryptographic_key_derivation --input USRpassword_encryptedF --encryption_configurations encryption_configurations.txt --output decryption_code

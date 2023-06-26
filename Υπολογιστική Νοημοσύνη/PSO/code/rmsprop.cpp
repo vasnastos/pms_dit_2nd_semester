@@ -1,13 +1,13 @@
 #include "rmsprop.hpp"
 
 RMSPROP::RMSPROP(Problem *instance):problem(instance),rho(0.9),epsilon(1e-8),iter(0),max_iters(100000) {
-    this->squared_gradients.resize(instance->get_dimension());
-    this->learning_rate.resize(instance->get_dimension());
+    this->squared_gradients.resize(instance->getDimension());
+    this->learning_rate.resize(instance->getDimension());
     fill(this->squared_gradients.begin(),this->squared_gradients.end(),0.0);
     fill(this->learning_rate.begin(),this->learning_rate.end(),1e-2);
     
     // Possible work with the number of the iterations
-    this->xpoint=this->problem->get_sample();
+    this->xpoint=this->problem->getSample();
 }
 
 RMSPROP::~RMSPROP() {}
@@ -17,14 +17,14 @@ void RMSPROP::solve() {
     do
     {
         gradient_points=this->problem->gradient(this->xpoint);
-        for(size_t i=0,size=this->problem->get_dimension();i<size;i++)
+        for(size_t i=0,size=this->problem->getDimension();i<size;i++)
         {
             this->squared_gradients[i]=rho * this->squared_gradients[i] + (1.0 - this->rho) * pow(gradient_points[i],2);
             this->learning_rate[i]=this->learning_rate[i]/(this->epsilon+std::sqrt(this->squared_gradients[i]));
             this->xpoint[i]=this->xpoint[i] - this->learning_rate[i] *  gradient_points[i]; 
         }
         this->iter++;
-        this->objective_value=this->problem->minimize_function(this->xpoint);
+        this->objective_value=this->problem->statFunmin(this->xpoint);
         cout<<"ITER ID:"<<this->iter<<"\tObjective(Error):"<<this->objective_value;
     }while(!this->terminated());
 }
